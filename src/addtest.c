@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <pthread.h>
+#include <time.h>
+#include <math.h>
 
 
 static long long counter = 0;
@@ -81,6 +83,11 @@ int main (int argc, char **argv) {
 	if (num_iterations < 1)
 		num_iterations = 1;
 
+	struct timespec start_time;
+	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
+		perror("clock_gettime");
+	}
+
 	pthread_t threads[num_threads];
 	int n;
 	for (n = 0; n < num_threads; n++) {
@@ -98,10 +105,24 @@ int main (int argc, char **argv) {
 		}
 	}
 
+	struct timespec end_time;
+	if (clock_gettime(CLOCK_MONOTONIC, &end_time)) {
+		perror("clock_gettime");
+	}
+
+	long long operations = num_threads * num_iterations * 2;
+	printf("%lld threads x %lld iterations x (add + subtract) = %lld operations\n",
+		num_threads, num_iterations, operations);
+
 	int counter_err = counter != 0;
 	if (counter_err) {
 		fprintf(stderr, "ERROR: final count = %lld\n", counter);
 	}
+
+	long long elapsed = (end_time.tv_sec * pow(10, 9) + end_time.tv_nsec)
+			- (start_time.tv_sec * pow(10, 9) + start_time.tv_nsec);
+	printf("elapsed time: %lld ns\n", elapsed);
+	printf("per operation: %lld ns\n", elapsed / operations);
 
 	return counter_err;
 }
