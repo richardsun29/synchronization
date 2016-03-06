@@ -22,6 +22,9 @@ static struct option long_options[] =
 int option_index = 0;
 
 int main (int argc, char **argv) {
+	int num_threads = 1;
+	int num_iterations = 1;
+	long long counter = 0;
 
 	int c;
 	while (1)
@@ -35,9 +38,11 @@ int main (int argc, char **argv) {
 		switch (c)
 		{
 			case THREADS:
+				num_threads = strtol(optarg, NULL, 10);
 				break;
 
 			case ITERATIONS:
+				num_iterations = strtol(optarg, NULL, 10);
 				break;
 
 			case LISTS:
@@ -51,6 +56,12 @@ int main (int argc, char **argv) {
 				break;
 		}
 	}
+
+	/* check for nonpositive values */
+	if (num_threads < 1)
+		num_threads = 1;
+	if (num_iterations < 1)
+		num_iterations = 1;
 
 	return 0;
 }
