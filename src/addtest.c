@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <pthread.h>
 
 
 static long long counter = 0;
@@ -79,6 +80,23 @@ int main (int argc, char **argv) {
 		num_threads = 1;
 	if (num_iterations < 1)
 		num_iterations = 1;
+
+	pthread_t threads[num_threads];
+	int n;
+	for (n = 0; n < num_threads; n++) {
+		int thread_ret = pthread_create(&threads[n], NULL, thread_func, (void*) &num_iterations);
+		if (thread_ret) {
+			fprintf(stderr, "Thread couldn't be created!\n");
+			exit(1);
+		}
+	}
+	for (n = 0; n < num_threads; n++) {
+		int join_ret = pthread_join(threads[n], NULL);
+		if (join_ret) {
+			fprintf(stderr, "Thread couldn't be joined!\n");
+			exit(1);
+		}
+	}
 
 	return 0;
 }
