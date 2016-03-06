@@ -93,14 +93,14 @@ int main (int argc, char **argv) {
 	for (n = 0; n < num_threads; n++) {
 		int thread_ret = pthread_create(&threads[n], NULL, thread_func, (void*) num_iterations);
 		if (thread_ret) {
-			fprintf(stderr, "Thread couldn't be created!\n");
+			perror("pthread_join");
 			exit(1);
 		}
 	}
 	for (n = 0; n < num_threads; n++) {
 		int join_ret = pthread_join(threads[n], NULL);
 		if (join_ret) {
-			fprintf(stderr, "Thread couldn't be joined!\n");
+			perror("pthread_join");
 			exit(1);
 		}
 	}
