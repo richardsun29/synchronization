@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=gnu99 -Wall -Wextra -Wno-unused-parameter
+CFLAGS = -std=gnu99 -Wall -Wextra -Wno-unused-parameter -pthread
 OPTIMIZE = -g# -O2
 
 SRC_DIR = src
