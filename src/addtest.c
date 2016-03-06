@@ -11,7 +11,12 @@ void add(long long *pointer, long long value) {
 }
 
 void *thread_func(void *num_iterations) {
-
+	long long i;
+	for (i = 0; i < (long long)num_iterations; i++)
+		add(&counter, 1);
+	for (i = 0; i < (long long)num_iterations; i++)
+		add(&counter, -1);
+	return 0;
 }
 
 enum {
@@ -35,8 +40,8 @@ static struct option long_options[] =
 int option_index = 0;
 
 int main (int argc, char **argv) {
-	int num_threads = 1;
-	int num_iterations = 1;
+	long long num_threads = 1;
+	long long num_iterations = 1;
 
 	int c;
 	while (1)
