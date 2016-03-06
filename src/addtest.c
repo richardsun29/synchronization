@@ -84,7 +84,7 @@ int main (int argc, char **argv) {
 	pthread_t threads[num_threads];
 	int n;
 	for (n = 0; n < num_threads; n++) {
-		int thread_ret = pthread_create(&threads[n], NULL, thread_func, (void*) &num_iterations);
+		int thread_ret = pthread_create(&threads[n], NULL, thread_func, (void*) num_iterations);
 		if (thread_ret) {
 			fprintf(stderr, "Thread couldn't be created!\n");
 			exit(1);
@@ -98,5 +98,10 @@ int main (int argc, char **argv) {
 		}
 	}
 
-	return 0;
+	int counter_err = counter != 0;
+	if (counter_err) {
+		fprintf(stderr, "ERROR: final count = %lld\n", counter);
+	}
+
+	return counter_err;
 }
