@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <getopt.h>
 
+long long counter = 0;
+int num_threads = 1;
+int num_iterations = 1;
+
 enum {
 	THREADS = 1,
 	ITERATIONS,
@@ -22,9 +26,6 @@ static struct option long_options[] =
 int option_index = 0;
 
 int main (int argc, char **argv) {
-	int num_threads = 1;
-	int num_iterations = 1;
-	long long counter = 0;
 
 	int c;
 	while (1)
