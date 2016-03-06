@@ -1,0 +1,15 @@
+1.1:
+
+1. It takes many threads or iterations because there is a race condition
+in the add function: before one thread sets the counter variable to a new value,
+another thread might read the counter variable and get its old value, modifying
+the counter variable using the old value instead of the new one.
+So if two different threads both increase the counter at the same time, 
+it's possible that the counter variable only actually increments once.
+This only happens with two or more threads.
+
+2. The race condition could happen during any iteration,
+so with a significantly small number of iterations, there are much fewer
+iterations during which this race condition could occur,
+so it's more likely that the program will succeed.
+
