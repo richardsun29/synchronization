@@ -2,9 +2,17 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-long long counter = 0;
-int num_threads = 1;
-int num_iterations = 1;
+
+static long long counter = 0;
+
+void add(long long *pointer, long long value) {
+	long long sum = *pointer + value;
+	*pointer = sum;
+}
+
+void *thread_func(void *num_iterations) {
+
+}
 
 enum {
 	THREADS = 1,
@@ -12,6 +20,7 @@ enum {
 	LISTS,
 	SYNC
 };
+
 
 static struct option long_options[] =
 {
@@ -26,6 +35,8 @@ static struct option long_options[] =
 int option_index = 0;
 
 int main (int argc, char **argv) {
+	int num_threads = 1;
+	int num_iterations = 1;
 
 	int c;
 	while (1)
