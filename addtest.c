@@ -151,7 +151,7 @@ int main (int argc, char **argv) {
 				break;
 			default:
 				fprintf(stderr,
-				"Unknown option for --sync\n");
+					"Unknown option for --sync\n");
 			}
 			break;
 
@@ -170,6 +170,7 @@ int main (int argc, char **argv) {
 	struct timespec start_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
 		perror("clock_gettime");
+		exit(1);
 	}
 
 	pthread_t threads[num_threads];
@@ -178,7 +179,7 @@ int main (int argc, char **argv) {
 		int thread_ret = pthread_create(&threads[n], NULL,
 				thread_func, (void*) num_iterations);
 		if (thread_ret) {
-			perror("pthread_join");
+			perror("pthread_create");
 			exit(1);
 		}
 	}
@@ -193,6 +194,7 @@ int main (int argc, char **argv) {
 	struct timespec end_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &end_time)) {
 		perror("clock_gettime");
+		exit(1);
 	}
 
 	long long operations = num_threads * num_iterations * 2;
