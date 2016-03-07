@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -std=gnu99 -Wall -Wextra -Wno-unused-parameter -pthread -lrt
 OPTIMIZE = -g# -O2
 
-PROGRAMS = addtest
+PROGRAMS = addtest sltest
 
 all: $(PROGRAMS)
 
@@ -20,6 +20,6 @@ $(DISTDIR): clean $(DIST_FILES)
 
 
 clean:
-	rm -rf addtest obj/ *.o *.tmp graphs/ data/ $(DISTDIR) $(DISTDIR).tar.gz
+	rm -rf $(PROGRAMS) graphs/ data/ $(DISTDIR) $(DISTDIR).tar.gz
 
-.PHONY: all check dist clean test
+.PHONY: all dist clean
