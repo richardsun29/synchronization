@@ -1,6 +1,7 @@
 #!/bin/bash
 
-make -s clean addtest
+make -s addtest
+mkdir -p graphs data
 
 # get per-op from addtest
 # run(nthreads, niterations, sync = none, yield = 0)
@@ -40,8 +41,7 @@ avg_run () {
 threads="$(seq 10)"
 iterations=1000
 
-mkdir -p graphs
-threads_data="graphs/addtest-threads.dat"
+threads_data="data/addtest-threads.dat"
 threads_img="graphs/addtest-threads.png"
 
 
@@ -72,7 +72,7 @@ title 'no --sync'
 iterations=(20 100 500 1000 5000 10000)
 threads=4
 
-iterations_data="graphs/addtest-iterations.dat"
+iterations_data="data/addtest-iterations.dat"
 iterations_img="graphs/addtest-iterations.png"
 
 printf "# Iterations\tTime per operation\n" > $iterations_data
