@@ -53,6 +53,8 @@ for nthreads in ${threads[@]}; do
 done
 
 gnuplot -p -e "
+set title 'Average Time per Operation vs. Number of Threads ($iterations iterations)';
+set key box;
 set xlabel 'Number of Threads';
 set xrange [0:11];
 set ylabel 'Time per Operation (ns)';
@@ -60,7 +62,7 @@ set logscale y;
 set terminal pngcairo size 800,600 enhanced;
 set output \"$threads_img\";
 plot \"$threads_data\" using 1:2
-title 'Average Time per Operation vs. Number of Threads for $iterations iterations'
+title 'no --sync'
 "
 
 
@@ -81,7 +83,9 @@ for niterations in ${iterations[@]}; do
 done
 
 gnuplot -p -e "
+set title 'Average Time per Operation vs. Number of Iterations ($threads threads)';
 set xlabel 'Number of Iterations';
+unset key;
 set xrange [10:100000];
 set ylabel 'Time per Operation (ns)';
 set logscale;
@@ -89,5 +93,4 @@ set offset graph 0.10, 0.10;
 set terminal pngcairo size 800,600 enhanced;
 set output \"$iterations_img\";
 plot \"$iterations_data\" using 1:2
-title 'Average Time per Operation vs. Number of Iterations for $threads threads'
 "
