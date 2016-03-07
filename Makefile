@@ -6,7 +6,7 @@ PROGRAMS = addtest
 
 all: $(PROGRAMS)
 
-$(PROGRAMS):
+$(PROGRAMS): % : %.c
 	$(CC) $(CFLAGS) $(OPTIMIZE) $@.c -o $@
 
 

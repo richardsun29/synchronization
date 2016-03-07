@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -8,8 +9,12 @@
 
 static long long counter = 0;
 
+int opt_yield;
+
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
 	*pointer = sum;
 }
 
@@ -25,7 +30,7 @@ void *thread_func(void *num_iterations) {
 enum {
 	THREADS = 1,
 	ITERATIONS,
-	LISTS,
+	YIELD,
 	SYNC
 };
 
@@ -34,7 +39,7 @@ static struct option long_options[] =
 {
 	{"threads", required_argument, 0, THREADS},
 	{"iterations", required_argument, 0, ITERATIONS},
-	{"lists", required_argument, 0, LISTS},
+	{"yield", required_argument, 0, YIELD},
 	{"sync", required_argument, 0, SYNC},
 	{0, 0, 0, 0}
 };
@@ -45,6 +50,8 @@ int option_index = 0;
 int main (int argc, char **argv) {
 	long long num_threads = 1;
 	long long num_iterations = 1;
+
+	opt_yield = 0;
 
 	int c;
 	while (1)
@@ -65,7 +72,8 @@ int main (int argc, char **argv) {
 				num_iterations = strtol(optarg, NULL, 10);
 				break;
 
-			case LISTS:
+			case YIELD:
+				opt_yield = strtol(optarg, NULL, 10);
 				break;
 
 			case SYNC:
@@ -91,7 +99,8 @@ int main (int argc, char **argv) {
 	pthread_t threads[num_threads];
 	int n;
 	for (n = 0; n < num_threads; n++) {
-		int thread_ret = pthread_create(&threads[n], NULL, thread_func, (void*) num_iterations);
+		int thread_ret = pthread_create(&threads[n], NULL,
+				thread_func, (void*) num_iterations);
 		if (thread_ret) {
 			perror("pthread_join");
 			exit(1);
