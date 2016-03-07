@@ -13,7 +13,7 @@ int opt_yield;
 
 pthread_mutex_t mutex;
 int spinlock = 0; // 0 = unlocked, 1 = locked
-long long num_iterations = 0;
+long long num_iterations = 1;
 
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
@@ -140,10 +140,14 @@ int main (int argc, char **argv) {
 	}
 
 	/* check for nonpositive values */
-	if (num_threads < 1)
-		num_threads = 1;
-	if (num_iterations < 1)
-		num_iterations = 1;
+	if (num_threads < 1) {
+		fprintf(stderr, "Thread number is less than 1\n");
+		exit(1);
+	}
+	if (num_iterations < 1) {
+		fprintf(stderr, "Iterations number is less than 1\n");
+		exit(1);
+	}
 
 	struct timespec start_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
