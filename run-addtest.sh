@@ -1,24 +1,55 @@
 #!/bin/bash
 
-threads=(1 2 3 4 6 8 10)
-iterations=(20 100 500 1000 5000 10000)
-
-data_file="addtest.dat"
-threads_img="addtest-threads.png"
-iterations_img="addtest-iterations.png"
-
 make -s clean addtest
 
-printf "# Threads\tIterations\tTime per operation\n" > $data_file
+# get per-op from addtest
+# run(nthreads, niterations, sync = none, yield = 0)
+run () {
+	local threads=$1
+	local iterations=$2
+	local sync=
+	local yield=
+
+	if [ -n "$3" ]; then
+		sync="--sync=$3"
+	fi
+	if [ -n "$4" ]; then
+		yield="--yield=1"
+	fi
+
+	cmd="./addtest --threads=$threads --iterations=$iterations $sync $yield"
+	output="$($cmd 2>/dev/null)"
+	echo "$output" | grep "per operation" | awk '{print $3}'
+}
+
+# gets average per-op from '$runs' runs
+avg_run () {
+	local runs=10
+
+	local sum=0
+	for i in `seq $runs`; do
+		per_op=$(run $@)
+		let "sum += $per_op"
+	done
+	echo $(($sum/$runs))
+}
+
+
+# Threads vs. per operation
+
+threads="$(seq 10)"
+iterations=1000
+
+mkdir -p graphs
+data_file="graphs/addtest.dat"
+threads_img="graphs/addtest-threads.png"
+
+
+printf "# Threads\tTime per operation\n" > $data_file
 
 for nthreads in ${threads[@]}; do
-	for niterations in ${iterations[@]}; do
-		cmd="./addtest --threads=$nthreads --iterations=$niterations"
-		#echo $cmd
-		output="$($cmd 2>/dev/null)"
-		per_op=$(echo "$output" | grep "per operation" | awk '{print $3}')
-		printf "$nthreads\t$niterations\t$per_op\n" >> $data_file
-	done
+	per_op=$(avg_run $nthreads $iterations)
+	printf "$nthreads\t$per_op\n" >> $data_file
 done
 
 gnuplot -p -e "
@@ -28,16 +59,20 @@ set ylabel 'Time per Operation (ns)';
 set logscale y;
 set terminal pngcairo size 800,600 enhanced;
 set output \"$threads_img\";
-plot \"$data_file\" using 1:3 title 'Time per Operation vs. Number of Threads'
+plot \"$data_file\" using 1:2
+title 'Time per Operation vs. Number of Threads for $iterations iterations'
 "
 
-gnuplot -p -e "
-set xlabel 'Number of Iterations';
-set xrange [10:100000];
-set ylabel 'Time per Operation (ns)';
-set logscale;
-set offset graph 0.10, 0.10;
-set terminal pngcairo size 800,600 enhanced;
-set output \"$iterations_img\";
-plot \"$data_file\" using 2:3 title 'Time per Operation vs. Number of Iterations'
-"
+#iterations=(20 100 500 1000 5000 10000)
+#iterations_img="addtest-iterations.png"
+#
+#gnuplot -p -e "
+#set xlabel 'Number of Iterations';
+#set xrange [10:100000];
+#set ylabel 'Time per Operation (ns)';
+#set logscale;
+#set offset graph 0.10, 0.10;
+#set terminal pngcairo size 800,600 enhanced;
+#set output \"$iterations_img\";
+#plot \"$data_file\" using 2:3 title 'Time per Operation vs. Number of Iterations'
+#"
