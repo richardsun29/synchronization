@@ -1,15 +1,52 @@
 1.1:
 
-1. It takes many threads or iterations because there is a race condition
-in the add function: before one thread sets the counter variable to a new value,
+1. It takes many threads or iterations because there is a race condition in the
+add function: before one thread sets the counter variable to a new value,
 another thread might read the counter variable and get its old value, modifying
-the counter variable using the old value instead of the new one.
-So if two different threads both increase the counter at the same time, 
-it's possible that the counter variable only actually increments once.
-This only happens with two or more threads.
+the counter variable using the old value instead of the new one.  So if two
+different threads both increase the counter at the same time, it's possible
+that the counter variable only actually increments once.  This only happens
+with two or more threads.
 
-2. The race condition could happen during any iteration,
-so with a significantly small number of iterations, there are much fewer
-iterations during which this race condition could occur,
-so it's more likely that the program will succeed.
+2. The race condition could happen during any iteration, so with a
+significantly small number of iterations, there are much fewer iterations
+during which this race condition could occur, so it's more likely that the
+program will succeed.
+
+
+1.2:
+
+1. Creating the threads is a constant overhead, so when we run the program with
+more iterations, the overhead of creating threads takes up a smaller percentage
+of the total work, so the program's throughput increases.
+
+2. Make the number of iterations very large so that the overhead of creating
+threads is negligible compared to the time spent on the operations.
+
+3. --yield is much slower because a lot of time is being spent doing context
+switches from one thread to another.
+
+4. We cannot get valid timings if using --yield because even if there's only
+one thread, pthread_yield() causes that single thread to give up control of the
+CPU, even though the scheduler wll just rerun the thread, and this adds
+overhead to the thread each time it calls the add function.
+
+
+1.3:
+
+1. All the options perform similarly for low numbers of threads because
+not much time is spent by the threads waiting to run the critical section
+in the add function. Only one thread can run the critical section at a time,
+so with a low number of threads, there are not many threads that have to be
+blocked.
+
+2. The three protected operations slow down as the number of threads rises
+because only one thread can run the critical section at a time,
+so it has to block a large number of threads from running, so all of the
+threads spent more time waiting to run.
+
+3. Spin locks are expensive for large numbers of threads because all of the
+threads are kept alive and they all use CPU time instead of being blocked,
+so much more of the CPU time is wasted on threads waiting to run.
+
 
