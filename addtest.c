@@ -11,6 +11,8 @@ static long long counter = 0;
 
 int opt_yield;
 
+pthread_mutex_t mutex;
+
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
 	if (opt_yield)
@@ -28,7 +30,18 @@ void *thread_nosync(void *num_iterations) {
 }
 
 void *thread_mutex(void *num_iterations) {
-
+	long long i;
+	for (i = 0; i < (long long)num_iterations; i++) {
+		pthread_mutex_lock(&mutex);
+		add(&counter, 1);
+		pthread_mutex_unlock(&mutex);
+	}
+	for (i = 0; i < (long long)num_iterations; i++) {
+		pthread_mutex_lock(&mutex);
+		add(&counter, -1);
+		pthread_mutex_unlock(&mutex);
+	}
+	return 0;
 }
 
 void *thread_spinlock(void *num_iterations) {
@@ -66,6 +79,7 @@ int main (int argc, char **argv) {
 	opt_yield = 0;
 	void *(*thread_func)(void *) = &thread_nosync;
 
+
 	int c;
 	while (1)
 	{
@@ -77,38 +91,42 @@ int main (int argc, char **argv) {
 
 		switch (c)
 		{
-			case THREADS:
-				num_threads = strtol(optarg, NULL, 10);
-				break;
+		case THREADS:
+			num_threads = strtol(optarg, NULL, 10);
+			break;
 
-			case ITERATIONS:
-				num_iterations = strtol(optarg, NULL, 10);
-				break;
+		case ITERATIONS:
+			num_iterations = strtol(optarg, NULL, 10);
+			break;
 
-			case YIELD:
-				opt_yield = strtol(optarg, NULL, 10);
-				break;
+		case YIELD:
+			opt_yield = strtol(optarg, NULL, 10);
+			break;
 
-			case SYNC:
-				switch(optarg[0]) {
-					case 'm':
-						thread_func = &thread_mutex;
-						break;
-					case 's':
-						thread_func = &thread_spinlock;
-						break;
-					case 'c':
-						thread_func = &thread_cas;
-						break;
-					default:
-						fprintf(stderr,
-						"Unknown option for --sync\n");
+		case SYNC:
+			switch(optarg[0]) {
+			case 'm':
+				thread_func = thread_mutex;
+				if (pthread_mutex_init(&mutex, NULL)) {
+					perror("pthread_mutex_init");
+					exit(1);
 				}
 				break;
-
-			default:
-				/* code for unrecognized options */
+			case 's':
+				thread_func = thread_spinlock;
 				break;
+			case 'c':
+				thread_func = thread_cas;
+				break;
+			default:
+				fprintf(stderr,
+				"Unknown option for --sync\n");
+			}
+			break;
+
+		default:
+			/* code for unrecognized options */
+			break;
 		}
 	}
 
