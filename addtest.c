@@ -62,8 +62,25 @@ void *thread_spinlock(void *num_iterations) {
 	return 0;
 }
 
-void *thread_cas(void *num_iterations) {
+void add_cas(long long *pointer, long long value) {
+	long long old, new;
+	do {
+		old = *pointer;
+		new = old + value;
+		if (opt_yield)
+			pthread_yield();
+	} while (__sync_val_compare_and_swap(pointer, old, new) != old);
+}
 
+void *thread_cas(void *num_iterations) {
+	long long i;
+	for (i = 0; i < (long long)num_iterations; i++) {
+		add_cas(&counter, 1);
+	}
+	for (i = 0; i < (long long)num_iterations; i++) {
+		add_cas(&counter, -1);
+	}
+	return 0;
 }
 
 enum {
