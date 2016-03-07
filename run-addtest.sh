@@ -41,15 +41,15 @@ threads="$(seq 10)"
 iterations=1000
 
 mkdir -p graphs
-data_file="graphs/addtest.dat"
+threads_data="graphs/addtest-threads.dat"
 threads_img="graphs/addtest-threads.png"
 
 
-printf "# Threads\tTime per operation\n" > $data_file
+printf "# Threads\tTime per operation\n" > $threads_data
 
 for nthreads in ${threads[@]}; do
 	per_op=$(avg_run $nthreads $iterations)
-	printf "$nthreads\t$per_op\n" >> $data_file
+	printf "$nthreads\t$per_op\n" >> $threads_data
 done
 
 gnuplot -p -e "
@@ -59,20 +59,35 @@ set ylabel 'Time per Operation (ns)';
 set logscale y;
 set terminal pngcairo size 800,600 enhanced;
 set output \"$threads_img\";
-plot \"$data_file\" using 1:2
-title 'Time per Operation vs. Number of Threads for $iterations iterations'
+plot \"$threads_data\" using 1:2
+title 'Average Time per Operation vs. Number of Threads for $iterations iterations'
 "
 
-#iterations=(20 100 500 1000 5000 10000)
-#iterations_img="addtest-iterations.png"
-#
-#gnuplot -p -e "
-#set xlabel 'Number of Iterations';
-#set xrange [10:100000];
-#set ylabel 'Time per Operation (ns)';
-#set logscale;
-#set offset graph 0.10, 0.10;
-#set terminal pngcairo size 800,600 enhanced;
-#set output \"$iterations_img\";
-#plot \"$data_file\" using 2:3 title 'Time per Operation vs. Number of Iterations'
-#"
+
+
+# Iterations vs. per operation
+
+iterations=(20 100 500 1000 5000 10000)
+threads=4
+
+iterations_data="graphs/addtest-iterations.dat"
+iterations_img="graphs/addtest-iterations.png"
+
+printf "# Iterations\tTime per operation\n" > $iterations_data
+
+for niterations in ${iterations[@]}; do
+	per_op=$(avg_run $threads $niterations)
+	printf "$niterations\t$per_op\n" >> $iterations_data
+done
+
+gnuplot -p -e "
+set xlabel 'Number of Iterations';
+set xrange [10:100000];
+set ylabel 'Time per Operation (ns)';
+set logscale;
+set offset graph 0.10, 0.10;
+set terminal pngcairo size 800,600 enhanced;
+set output \"$iterations_img\";
+plot \"$iterations_data\" using 1:2
+title 'Average Time per Operation vs. Number of Iterations for $threads threads'
+"

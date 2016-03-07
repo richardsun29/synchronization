@@ -20,6 +20,6 @@ $(DISTDIR): clean $(DIST_FILES)
 
 
 clean:
-	rm -rf addtest obj/ *.o *.tmp *.dat *.png $(DISTDIR) $(DISTDIR).tar.gz
+	rm -rf addtest obj/ *.o *.tmp graphs/ $(DISTDIR) $(DISTDIR).tar.gz
 
 .PHONY: all check dist clean test

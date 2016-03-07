@@ -3,7 +3,4 @@
 obj/
 addtest
 lab1-michaelli.tar.gz
-
-# graph output
-*.dat
-*.png
+graphs/
