@@ -18,13 +18,25 @@ void add(long long *pointer, long long value) {
 	*pointer = sum;
 }
 
-void *thread_func(void *num_iterations) {
+void *thread_nosync(void *num_iterations) {
 	long long i;
 	for (i = 0; i < (long long)num_iterations; i++)
 		add(&counter, 1);
 	for (i = 0; i < (long long)num_iterations; i++)
 		add(&counter, -1);
 	return 0;
+}
+
+void *thread_mutex(void *num_iterations) {
+
+}
+
+void *thread_spinlock(void *num_iterations) {
+
+}
+
+void *thread_cas(void *num_iterations) {
+
 }
 
 enum {
@@ -52,6 +64,7 @@ int main (int argc, char **argv) {
 	long long num_iterations = 1;
 
 	opt_yield = 0;
+	void *(*thread_func)(void *) = &thread_nosync;
 
 	int c;
 	while (1)
@@ -77,6 +90,20 @@ int main (int argc, char **argv) {
 				break;
 
 			case SYNC:
+				switch(optarg[0]) {
+					case 'm':
+						thread_func = &thread_mutex;
+						break;
+					case 's':
+						thread_func = &thread_spinlock;
+						break;
+					case 'c':
+						thread_func = &thread_cas;
+						break;
+					default:
+						fprintf(stderr,
+						"Unknown option for --sync\n");
+				}
 				break;
 
 			default:
