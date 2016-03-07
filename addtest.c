@@ -13,6 +13,7 @@ int opt_yield;
 
 pthread_mutex_t mutex;
 int spinlock = 0; // 0 = unlocked, 1 = locked
+long long num_iterations = 0;
 
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
@@ -21,45 +22,23 @@ void add(long long *pointer, long long value) {
 	*pointer = sum;
 }
 
-void *thread_nosync(void *num_iterations) {
-	long long i;
-	for (i = 0; i < (long long)num_iterations; i++)
-		add(&counter, 1);
-	for (i = 0; i < (long long)num_iterations; i++)
-		add(&counter, -1);
-	return 0;
+void add_mutex(long long *pointer, long long value) {
+	pthread_mutex_lock(&mutex);
+	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
+	*pointer = sum;
+	pthread_mutex_unlock(&mutex);
 }
 
-void *thread_mutex(void *num_iterations) {
-	long long i;
-	for (i = 0; i < (long long)num_iterations; i++) {
-		pthread_mutex_lock(&mutex);
-		add(&counter, 1);
-		pthread_mutex_unlock(&mutex);
-	}
-	for (i = 0; i < (long long)num_iterations; i++) {
-		pthread_mutex_lock(&mutex);
-		add(&counter, -1);
-		pthread_mutex_unlock(&mutex);
-	}
-	return 0;
-}
-
-void *thread_spinlock(void *num_iterations) {
-	long long i;
-	for (i = 0; i < (long long)num_iterations; i++) {
-		while (__sync_lock_test_and_set(&spinlock, 1))
+void add_spinlock(long long *pointer, long long value) {
+	while (__sync_lock_test_and_set(&spinlock, 1))
 			continue;
-		add(&counter, 1);
-		__sync_lock_release(&spinlock);
-	}
-	for (i = 0; i < (long long)num_iterations; i++) {
-		while (__sync_lock_test_and_set(&spinlock, 1))
-			continue;
-		add(&counter, -1);
-		__sync_lock_release(&spinlock);
-	}
-	return 0;
+	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
+	*pointer = sum;
+	__sync_lock_release(&spinlock);
 }
 
 void add_cas(long long *pointer, long long value) {
@@ -72,16 +51,16 @@ void add_cas(long long *pointer, long long value) {
 	} while (__sync_val_compare_and_swap(pointer, old, new) != old);
 }
 
-void *thread_cas(void *num_iterations) {
+void *thread_func(void *arg) {
+	void (*add_func)(long long*, long long) = arg;
 	long long i;
-	for (i = 0; i < (long long)num_iterations; i++) {
-		add_cas(&counter, 1);
-	}
-	for (i = 0; i < (long long)num_iterations; i++) {
-		add_cas(&counter, -1);
-	}
+	for (i = 0; i < num_iterations; i++)
+		add_func(&counter, 1);
+	for (i = 0; i < num_iterations; i++)
+		add_func(&counter, -1);
 	return 0;
 }
+
 
 enum {
 	THREADS = 1,
@@ -105,10 +84,9 @@ int option_index = 0;
 
 int main (int argc, char **argv) {
 	long long num_threads = 1;
-	long long num_iterations = 1;
 
 	opt_yield = 0;
-	void *(*thread_func)(void *) = &thread_nosync;
+	void (*add_func)(long long*, long long) = add;
 
 
 	int c;
@@ -137,17 +115,17 @@ int main (int argc, char **argv) {
 		case SYNC:
 			switch(optarg[0]) {
 			case 'm':
-				thread_func = thread_mutex;
+				add_func = add_mutex;
 				if (pthread_mutex_init(&mutex, NULL)) {
 					perror("pthread_mutex_init");
 					exit(1);
 				}
 				break;
 			case 's':
-				thread_func = thread_spinlock;
+				add_func = add_spinlock;
 				break;
 			case 'c':
-				thread_func = thread_cas;
+				add_func = add_cas;
 				break;
 			default:
 				fprintf(stderr,
@@ -177,7 +155,7 @@ int main (int argc, char **argv) {
 	int n;
 	for (n = 0; n < num_threads; n++) {
 		int thread_ret = pthread_create(&threads[n], NULL,
-				thread_func, (void*) num_iterations);
+				thread_func, (void*)add_func);
 		if (thread_ret) {
 			perror("pthread_create");
 			exit(1);
