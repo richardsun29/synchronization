@@ -25,7 +25,7 @@ run () {
 
 # gets average per-op from '$runs' runs
 avg_run () {
-	local runs=10
+	local runs=50
 
 	local sum=0
 	for i in `seq $runs`; do
@@ -48,9 +48,12 @@ threads_img="graphs/addtest-threads.png"
 printf "# Threads\tTime per operation\n" > $threads_data
 
 for nthreads in ${threads[@]}; do
+	printf "\r$nthreads threads..."
 	per_op=$(avg_run $nthreads $iterations)
 	printf "$nthreads\t$per_op\n" >> $threads_data
 done
+
+echo "done"
 
 gnuplot -p -e "
 set title 'Average Time per Operation vs. Number of Threads ($iterations iterations)';
@@ -78,9 +81,12 @@ iterations_img="graphs/addtest-iterations.png"
 printf "# Iterations\tTime per operation\n" > $iterations_data
 
 for niterations in ${iterations[@]}; do
+	printf "\r$niterations iterations..."
 	per_op=$(avg_run $threads $niterations)
 	printf "$niterations\t$per_op\n" >> $iterations_data
 done
+
+echo "done"
 
 gnuplot -p -e "
 set title 'Average Time per Operation vs. Number of Iterations ($threads threads)';
