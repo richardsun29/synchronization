@@ -12,6 +12,7 @@ static long long counter = 0;
 int opt_yield;
 
 pthread_mutex_t mutex;
+int spinlock = 0; // 0 = unlocked, 1 = locked
 
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
@@ -45,7 +46,20 @@ void *thread_mutex(void *num_iterations) {
 }
 
 void *thread_spinlock(void *num_iterations) {
-
+	long long i;
+	for (i = 0; i < (long long)num_iterations; i++) {
+		while (__sync_lock_test_and_set(&spinlock, 1))
+			continue;
+		add(&counter, 1);
+		__sync_lock_release(&spinlock);
+	}
+	for (i = 0; i < (long long)num_iterations; i++) {
+		while (__sync_lock_test_and_set(&spinlock, 1))
+			continue;
+		add(&counter, -1);
+		__sync_lock_release(&spinlock);
+	}
+	return 0;
 }
 
 void *thread_cas(void *num_iterations) {
