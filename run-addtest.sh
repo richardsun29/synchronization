@@ -39,18 +39,20 @@ avg_run () {
 # Threads vs. per operation
 
 threads="$(seq 10)"
-iterations=1000
+iterations=10000
 
 threads_data="data/addtest-threads.dat"
 threads_img="graphs/addtest-threads.png"
 
-
-printf "# Threads\tTime per operation\n" > $threads_data
+printf "#threads\tnosync\tmutex\tspin\tcas\n" > $threads_data
 
 for nthreads in ${threads[@]}; do
 	printf "\r$nthreads threads..."
-	per_op=$(avg_run $nthreads $iterations)
-	printf "$nthreads\t$per_op\n" >> $threads_data
+	avg_n=$(avg_run $nthreads $iterations)
+	avg_m=$(avg_run $nthreads $iterations m)
+	avg_s=$(avg_run $nthreads $iterations s)
+	avg_c=$(avg_run $nthreads $iterations c)
+	printf "$nthreads\t$avg_n\t$avg_m\t$avg_s\t$avg_c\n" >> $threads_data
 done
 
 echo "done"
@@ -58,14 +60,16 @@ echo "done"
 gnuplot -p -e "
 set title 'Average Time per Operation vs. Number of Threads ($iterations iterations)';
 set key box;
+set key left top;
 set xlabel 'Number of Threads';
 set xrange [0:11];
 set ylabel 'Time per Operation (ns)';
-set logscale y;
 set terminal pngcairo size 800,600 enhanced;
 set output \"$threads_img\";
-plot \"$threads_data\" using 1:2
-title 'no --sync'
+plot \"$threads_data\" using 1:2 title 'no sync',  \
+     \"$threads_data\" using 1:3 title '--sync=m', \
+     \"$threads_data\" using 1:4 title '--sync=s', \
+     \"$threads_data\" using 1:5 title '--sync=c'
 "
 
 
