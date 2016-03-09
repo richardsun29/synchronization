@@ -134,7 +134,7 @@ int main (int argc, char **argv) {
 	*/
 
 	SortedList_t *list = SortedList_new_list();
-	SortedListElement_t *e1, *e2, *e3, *e4, *e5;
+	SortedListElement_t *e1, *e2, *e3, *e4, *e5, *e6;
 	e1 = SortedList_new_element("b");
 	SortedList_insert(list, e1);
 	SortedList_delete(e1);
@@ -157,5 +157,8 @@ int main (int argc, char **argv) {
 	SortedList_print(list);
 	printf("list length w/o e5: %d\n", SortedList_length(list));
 
+	e6 = SortedList_new_element("Delete this!");
+	SortedList_insert(list, e6);
+	SortedList_free(list);
 	return 0;
 }
