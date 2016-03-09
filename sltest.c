@@ -129,9 +129,16 @@ int main (int argc, char **argv) {
 	*/
 
 	SortedList_t *list = SortedList_new_list();
-	SortedListElement_t *element = SortedList_new_element("a");
-	SortedList_insert(list, element);
+	SortedListElement_t *element;
 	element = SortedList_new_element("b");
+	SortedList_insert(list, element);
+	element = SortedList_new_element("c");
+	SortedList_insert(list, element);
+	element = SortedList_new_element("b234");
+	SortedList_insert(list, element);
+	element = SortedList_new_element("zzz");
+	SortedList_insert(list, element);
+	element = SortedList_new_element("a");
 	SortedList_insert(list, element);
 	SortedList_print(list);
 

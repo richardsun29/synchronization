@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "SortedList.h"
@@ -85,17 +86,22 @@ void SortedList_print(SortedList_t *list) {
  *		call pthread_yield in middle of critical section
  */
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
-	if (list->next == NULL) { // empty list
-		list->next = element;
-		element->prev = list;
+
+	// find nodes to insert element between
+	SortedListElement_t *prev = list,
+			    *next = list->next;
+
+	while (next != NULL && strcmp(element->key, next->key) > 0) {
+		prev = next;
+		next = next->next;
 	}
-	else { // insert at front
-		SortedListElement_t *curr = list->next;
-		list->next = element;
-		element->prev = list;
-		element->next = curr;
-		curr->prev = element;
+
+	element->next = next;
+	element->prev = prev;
+	if (next != NULL) { // not inserting at end of list
+		next->prev = element;
 	}
+	prev->next = element;
 }
 
 /**
