@@ -156,4 +156,20 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
  * Note: if (opt_yield & SEARCH_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_length(SortedList_t *list);
+int SortedList_length(SortedList_t *list) {
+	SortedListElement_t *element = (SortedListElement_t*)list->next;
+	if (element == NULL) {
+		return 0;
+	}
+	int length = 1;
+	while (element->next != NULL) {
+		if ((element->next != NULL && element->next->prev != element)
+				|| element->prev->next != element) {
+			return -1;
+		}
+		element = element->next;
+		length++;
+	}
+	return length;
+}
+
