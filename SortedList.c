@@ -142,7 +142,16 @@ int SortedList_delete(SortedListElement_t *element) {
  * Note: if (opt_yield & SEARCH_YIELD)
  *		call pthread_yield in middle of critical section
  */
-SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
+SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
+	SortedListElement_t *element = (SortedListElement_t*)list;
+	while (element->next != NULL) {
+		element = element->next;
+		if (strcmp(element->key, key) == 0) {
+			return element;
+		}
+	}
+	return NULL;
+}
 
 /**
  * SortedList_length ... count elements in a sorted list
