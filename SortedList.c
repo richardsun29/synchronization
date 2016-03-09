@@ -46,7 +46,15 @@ SortedListElement_t *SortedList_new_element(char *key) {
  * @param Sorted_list_t *list ... header for the list to delete
  *
  */
-void SortedList_free(SortedList_t *list);
+void SortedList_free(SortedList_t *list) {
+	SortedListElement_t *curr = list->next;
+	while (curr != NULL) {
+		SortedListElement_t *del = curr;
+		curr = curr->next;
+		free(del);
+	}
+	free(list);
+}
 
 /**
  * SortedList_print ... print all keys in a sorted list
