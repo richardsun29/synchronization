@@ -115,12 +115,12 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
  *
  * @param SortedListElement_t *element ... element to be removed
  *
- * @return 0: element deleted successfully, 1: corrtuped prev/next pointers
+ * @return 0: element deleted successfully, 1: corrupted prev/next pointers
  *
  * Note: if (opt_yield & DELETE_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_delete( SortedListElement_t *element);
+int SortedList_delete(SortedListElement_t *element);
 
 /**
  * SortedList_lookup ... search sorted list for a key
@@ -140,7 +140,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
 
 /**
  * SortedList_length ... count elements in a sorted list
- *	While enumeratign list, it checks all prev/next pointers
+ *	While enumerating list, it checks all prev/next pointers
  *
  * @param SortedList_t *list ... header for the list
  *
