@@ -1,24 +1,7 @@
-#ifndef SORTEDLIST_H
-#define SORTEDLIST_H
+#include <stdlib.h>
+#include <stdio.h>
 
-/*
- * SortedList (and SortedListElement)
- *
- *	A doubly linked list, kept sorted by a specified key.
- *	This structure is used for a list head, and each element
- *	of the list begins with this structure.
- *
- *	The list head is in the list, and an empty list contains
- *	only a list head.  The list head is also recognizable because
- *	it has a NULL key pointer.
- */
-struct SortedListElement {
-	struct SortedListElement *prev;
-	struct SortedListElement *next;
-	const char *key;
-};
-typedef struct SortedListElement SortedList_t;
-typedef struct SortedListElement SortedListElement_t;
+#include "SortedList.h"
 
 /**
  * SortedList_new_list ... create a new sorted list
@@ -28,7 +11,18 @@ typedef struct SortedListElement SortedListElement_t;
  * @return pointer to the SortedList_t, or NULL if creation failed.
  *
  */
-SortedList_t *SortedList_new_list();
+SortedList_t *SortedList_new_list() {
+	/*
+	SortedList_t *list = (SortedList_t*)malloc(sizeof(SortedList_t));
+	if (list == NULL)
+		return NULL;
+	list->prev = NULL;
+	list->next = NULL;
+	list->key  = NULL;
+	return list;
+	*/
+	return (SortedList_t*)SortedList_new_element(NULL);
+}
 
 /**
  * SortedList_new_element ... create a new sorted list element
@@ -40,7 +34,16 @@ SortedList_t *SortedList_new_list();
  * @return pointer to the SortedList_t, or NULL if creation failed.
  *
  */
-SortedListElement_t *SortedList_new_element(char *key);
+SortedListElement_t *SortedList_new_element(char *key) {
+	SortedListElement_t *element = 
+		(SortedListElement_t*)malloc(sizeof(SortedListElement_t));
+	if (element == NULL)
+		return NULL;
+	element->prev = NULL;
+	element->next = NULL;
+	element->key  = key;
+	return element;
+}
 
 /**
  * SortedList_free ... free a sorted list
@@ -60,7 +63,13 @@ void SortedList_free(SortedList_t *list);
  * @param Sorted_list_t *list ... header for the list to print
  *
  */
-void SortedList_print(SortedList_t *list);
+void SortedList_print(SortedList_t *list) {
+	SortedListElement_t *curr = list->next;
+	while (curr != NULL) {
+		printf("%s\n", curr->key);
+		curr = curr->next;
+	}
+}
 
 /**
  * SortedList_insert ... insert an element into a sorted list
@@ -75,7 +84,19 @@ void SortedList_print(SortedList_t *list);
  * Note: if (opt_yield & INSERT_YIELD)
  *		call pthread_yield in middle of critical section
  */
-void SortedList_insert(SortedList_t *list, SortedListElement_t *element);
+void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
+	if (list->next == NULL) { // empty list
+		list->next = element;
+		element->prev = list;
+	}
+	else { // insert at front
+		SortedListElement_t *curr = list->next;
+		list->next = element;
+		element->prev = list;
+		element->next = curr;
+		curr->prev = element;
+	}
+}
 
 /**
  * SortedList_delete ... remove an element from a sorted list
@@ -124,13 +145,3 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
  *		call pthread_yield in middle of critical section
  */
 int SortedList_length(SortedList_t *list);
-
-/**
- * variable to enable diagnositc calls to pthread_yield
- */
-extern int opt_yield;
-#define	INSERT_YIELD	0x01	// yield in insert critical section
-#define	DELETE_YIELD	0x02	// yield in delete critical section
-#define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
-
-#endif

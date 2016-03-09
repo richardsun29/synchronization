@@ -9,6 +9,7 @@
 #include "SortedList.h"
 
 
+int opt_yield = 0;
 long long num_iterations = 1;
 
 enum {
@@ -18,6 +19,9 @@ enum {
 	SYNC
 };
 
+void *thread_func(void *arg) {
+	return arg;
+}
 
 static struct option long_options[] =
 {
@@ -86,7 +90,7 @@ int main (int argc, char **argv) {
 	int n;
 	for (n = 0; n < num_threads; n++) {
 		int thread_ret = pthread_create(&threads[n], NULL,
-				thread_func, (void*)add_func);
+				thread_func, NULL);
 		if (thread_ret) {
 			perror("pthread_create");
 			exit(1);
@@ -123,5 +127,13 @@ int main (int argc, char **argv) {
 
 	return counter_err;
 	*/
+
+	SortedList_t *list = SortedList_new_list();
+	SortedListElement_t *element = SortedList_new_element("a");
+	SortedList_insert(list, element);
+	element = SortedList_new_element("b");
+	SortedList_insert(list, element);
+	SortedList_print(list);
+
 	return 0;
 }

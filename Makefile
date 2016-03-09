@@ -6,9 +6,11 @@ PROGRAMS = addtest sltest
 
 all: $(PROGRAMS)
 
-$(PROGRAMS): % : %.c
-	$(CC) $(CFLAGS) $(OPTIMIZE) $@.c -o $@
+addtest: addtest.c
+	$(CC) $(CFLAGS) $(OPTIMIZE) $^ -o $@
 
+sltest: sltest.c SortedList.c SortedList.h
+	$(CC) $(CFLAGS) $(OPTIMIZE) $^ -o $@
 
 DISTDIR = lab1-michaelli
 DIST_FILES = Makefile README.md $(SRC_DIR)
