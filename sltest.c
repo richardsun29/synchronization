@@ -16,7 +16,8 @@ enum {
 	THREADS = 1,
 	ITERATIONS,
 	YIELD,
-	SYNC
+	SYNC,
+	LISTS
 };
 
 void *thread_func(void *arg) {
@@ -29,6 +30,7 @@ static struct option long_options[] =
 	{"iterations", required_argument, 0, ITERATIONS},
 	{"yield", required_argument, 0, YIELD},
 	{"sync", required_argument, 0, SYNC},
+	{"lists", required_argument, 0, LISTS},
 	{0, 0, 0, 0}
 };
 
@@ -62,6 +64,9 @@ int main (int argc, char **argv) {
 			break;
 
 		case SYNC:
+			break;
+
+		case LISTS:
 			break;
 
 		default:
