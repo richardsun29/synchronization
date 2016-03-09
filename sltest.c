@@ -144,8 +144,11 @@ int main (int argc, char **argv) {
 	SortedList_delete(e4);
 	e5 = SortedList_new_element("a");
 	SortedList_insert(list, e5);
+	SortedList_print(list);
+	printf("list length with e5: %d\n", SortedList_length(list));
 	SortedList_delete(e1);
 	SortedList_print(list);
+	printf("list length w/o e5: %d\n", SortedList_length(list));
 
 	return 0;
 }
