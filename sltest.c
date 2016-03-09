@@ -146,6 +146,8 @@ int main (int argc, char **argv) {
 	SortedList_insert(list, e5);
 	SortedList_print(list);
 	printf("list length with e5: %d\n", SortedList_length(list));
+	printf("e5 was found in list: %s\n", SortedList_lookup(list, "a")->key);
+	printf("NOTFOUND shouldn't be found, lookup should return NULL: %d\n", SortedList_lookup(list, "NOTHERE") == NULL);
 	SortedList_delete(e1);
 	SortedList_print(list);
 	printf("list length w/o e5: %d\n", SortedList_length(list));
