@@ -129,17 +129,22 @@ int main (int argc, char **argv) {
 	*/
 
 	SortedList_t *list = SortedList_new_list();
-	SortedListElement_t *element;
-	element = SortedList_new_element("b");
-	SortedList_insert(list, element);
-	element = SortedList_new_element("c");
-	SortedList_insert(list, element);
-	element = SortedList_new_element("b234");
-	SortedList_insert(list, element);
-	element = SortedList_new_element("zzz");
-	SortedList_insert(list, element);
-	element = SortedList_new_element("a");
-	SortedList_insert(list, element);
+	SortedListElement_t *e1, *e2, *e3, *e4, *e5;
+	e1 = SortedList_new_element("b");
+	SortedList_insert(list, e1);
+	SortedList_delete(e1);
+	e2 = SortedList_new_element("c");
+	SortedList_insert(list, e2);
+	SortedList_delete(e2);
+	e3 = SortedList_new_element("b234");
+	SortedList_insert(list, e3);
+	SortedList_delete(e3);
+	e4 = SortedList_new_element("zzz");
+	SortedList_insert(list, e4);
+	SortedList_delete(e4);
+	e5 = SortedList_new_element("a");
+	SortedList_insert(list, e5);
+	SortedList_delete(e1);
 	SortedList_print(list);
 
 	return 0;

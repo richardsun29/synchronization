@@ -13,15 +13,7 @@
  *
  */
 SortedList_t *SortedList_new_list() {
-	/*
-	SortedList_t *list = (SortedList_t*)malloc(sizeof(SortedList_t));
-	if (list == NULL)
-		return NULL;
-	list->prev = NULL;
-	list->next = NULL;
-	list->key  = NULL;
-	return list;
-	*/
+	// a SortedList_t is just a SortedListElement_t with a NULL key
 	return (SortedList_t*)SortedList_new_element(NULL);
 }
 
@@ -42,7 +34,7 @@ SortedListElement_t *SortedList_new_element(char *key) {
 		return NULL;
 	element->prev = NULL;
 	element->next = NULL;
-	element->key  = key;
+	element->key = key;
 	return element;
 }
 
@@ -120,7 +112,21 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
  * Note: if (opt_yield & DELETE_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_delete(SortedListElement_t *element);
+int SortedList_delete(SortedListElement_t *element) {
+	// check for corrupted prev/next pointers
+	// element->prev should never be NULL
+	if ((element->next != NULL && element->next->prev != element)
+	    || element->prev->next != element) {
+		return 1;
+	}
+
+	element->prev->next = element->next;
+	if (element->next != NULL) {
+		element->next->prev = element->prev;
+	}
+	free(element);
+	return 0;
+}
 
 /**
  * SortedList_lookup ... search sorted list for a key
