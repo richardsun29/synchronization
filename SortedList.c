@@ -1,6 +1,8 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "SortedList.h"
 
@@ -97,6 +99,11 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	}
 
 	element->next = next;
+
+	if (opt_yield & INSERT_YIELD) {
+		pthread_yield();
+	}
+
 	element->prev = prev;
 	if (next != NULL) { // not inserting at end of list
 		next->prev = element;
@@ -132,6 +139,11 @@ int SortedList_delete(SortedListElement_t *element) {
 	if (element->next != NULL) {
 		element->next->prev = element->prev;
 	}
+
+	if (opt_yield & INSERT_YIELD) {
+		pthread_yield();
+	}
+
 	free(element);
 	return 0;
 }
@@ -154,6 +166,11 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
 	while (element->next != NULL) {
 		element = element->next;
+		
+		if (opt_yield & SEARCH_YIELD) {
+			pthread_yield();
+		}
+
 		if (strcmp(element->key, key) == 0) {
 			return element;
 		}
@@ -185,6 +202,9 @@ int SortedList_length(SortedList_t *list) {
 			return -1;
 		}
 		element = element->next;
+		if (opt_yield & INSERT_YIELD) {
+			pthread_yield();
+		}
 		length++;
 	}
 	return length;
