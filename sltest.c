@@ -11,6 +11,8 @@
 
 int opt_yield = 0;
 long long num_iterations = 1;
+SortedList_t *sorted_list;
+SortedListElement_t **list_elements;
 
 enum {
 	THREADS = 1,
@@ -21,6 +23,17 @@ enum {
 };
 
 void *thread_func(void *arg) {
+	int thread_num = *(int*)arg;
+	// insert elements
+	int start_elem = thread_num * num_iterations;
+	int end_elem = start_elem + num_iterations - 1;
+ 	int i;
+	for (i = start_elem; i <= end_elem; i++) {
+		SortedList_insert(sorted_list, list_elements[i]);
+	}
+	// count length
+	int list_size = SortedList_length(sorted_list);
+	// TODO: lookup, deletes
 	return arg;
 }
 
@@ -60,9 +73,22 @@ int main (int argc, char **argv) {
 			break;
 
 		case YIELD:
-			opt_yield = strtol(optarg, NULL, 10);
-			break;
+			// TODO: change this to a loop
+			switch(optarg[0]) {
+			case 'i':
+				opt_yield |= INSERT_YIELD;	
+				break;
+			case 'd':
+				opt_yield |= DELETE_YIELD;
+				break;
+			case 's':
+				opt_yield |= SEARCH_YIELD;
+				break;
+			default:
+				fprintf(stderr, "Unknown option for --yield\n");
+			}
 
+			break;
 		case SYNC:
 			break;
 
@@ -85,17 +111,29 @@ int main (int argc, char **argv) {
 		exit(1);
 	}
 
+	sorted_list = SortedList_new_list();
+	pthread_t threads[num_threads];
+	list_elements = malloc(num_threads * num_iterations * sizeof(SortedListElement_t*));
+
+	// Create elements with random keys
+	char digits[] = "0123456789";
+	int i;
+	for (i = 0; i < num_threads; i++) {
+		int j;
+		for (j = 0; j < num_iterations; j++) {
+			list_elements[i * num_iterations + j] = SortedList_new_element(&digits[num_iterations % 10]);
+		}
+	}
 	struct timespec start_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
 		perror("clock_gettime");
 		exit(1);
 	}
 
-	pthread_t threads[num_threads];
 	int n;
 	for (n = 0; n < num_threads; n++) {
 		int thread_ret = pthread_create(&threads[n], NULL,
-				thread_func, NULL);
+				thread_func, (void*)&n);
 		if (thread_ret) {
 			perror("pthread_create");
 			exit(1);
@@ -108,21 +146,20 @@ int main (int argc, char **argv) {
 			exit(1);
 		}
 	}
-
 	struct timespec end_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &end_time)) {
 		perror("clock_gettime");
 		exit(1);
 	}
 
-	/*
+	int sorted_list_size = SortedList_length(sorted_list);
 	long long operations = num_threads * num_iterations * 2;
 	printf("%lld threads x %lld iterations x (add + subtract) = %lld operations\n",
 		num_threads, num_iterations, operations);
 
-	int counter_err = counter != 0;
-	if (counter_err) {
-		fprintf(stderr, "ERROR: final count = %lld\n", counter);
+	int size_err = sorted_list_size != 0;
+	if (size_err) {
+		fprintf(stderr, "ERROR: final count = %d\n", sorted_list_size);
 	}
 
 	long long elapsed = (end_time.tv_sec * pow(10, 9) + end_time.tv_nsec)
@@ -130,10 +167,10 @@ int main (int argc, char **argv) {
 	printf("elapsed time: %lld ns\n", elapsed);
 	printf("per operation: %lld ns\n", elapsed / operations);
 
-	return counter_err;
-	*/
+	return size_err;
+	
 
-	SortedList_t *list = SortedList_new_list();
+	/*SortedList_t *list = SortedList_new_list();
 	SortedListElement_t *e1, *e2, *e3, *e4, *e5, *e6;
 	e1 = SortedList_new_element("b");
 	SortedList_insert(list, e1);
@@ -159,6 +196,8 @@ int main (int argc, char **argv) {
 
 	e6 = SortedList_new_element("Delete this!");
 	SortedList_insert(list, e6);
-	SortedList_free(list);
-	return 0;
+	SortedList_free(list);*/
+
+
+	//return 0;
 }
