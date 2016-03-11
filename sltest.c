@@ -122,6 +122,7 @@ int main (int argc, char **argv) {
 							break;
 						default:
 							fprintf(stderr, "Unknown option for --yield\n");
+							exit(1);
 					}
 				}
 			}
