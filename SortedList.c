@@ -114,7 +114,7 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 }
 
 void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element) {
-	int list_index = &list - sorted_lists;
+	int list_index = list - sorted_lists[0];
 	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
 		continue;
 	// find nodes to insert element between
@@ -142,7 +142,7 @@ void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element
 	__sync_lock_release(&spin_locks[list_index]);
 }
 void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
-	int list_index = &list - sorted_lists;
+	int list_index = list - sorted_lists[0];
 	pthread_mutex_lock(&blocking_mutexes[list_index]);
 
 	// find nodes to insert element between
@@ -292,9 +292,9 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	return NULL;
 }
 SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key) {
-	int list_index = &list - sorted_lists;
+	int list_index = list - sorted_lists[0];
 	// printf("spinlock lookup\n");
-	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
 		continue;
 	SortedListElement_t *element = (SortedListElement_t*)list;
 	while (element->next != NULL) {
@@ -359,7 +359,6 @@ int SortedList_length(SortedList_t *list) {
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
-			__sync_lock_release(&spin_locks[0]);
 			return -1;
 		}
 		element = element->next;
@@ -373,7 +372,7 @@ int SortedList_length(SortedList_t *list) {
 }
 int SortedList_length_spinlock(SortedList_t *list) {
 	SortedListElement_t *element = (SortedListElement_t*)list->next;
-	int list_index = &list - sorted_lists;
+	int list_index = list - sorted_lists[0];
 	if (element == NULL) {
 		return 0;
 	}
@@ -397,7 +396,7 @@ int SortedList_length_spinlock(SortedList_t *list) {
 }
 int SortedList_length_mutex(SortedList_t *list) {
 	SortedListElement_t *element = (SortedListElement_t*)list->next;
-	int list_index = &list - sorted_lists;
+	int list_index = list - sorted_lists[0];
 	if (element == NULL) {
 		return 0;
 	}
