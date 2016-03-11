@@ -15,6 +15,7 @@ long long num_lists = 1;
 SortedList_t **sorted_lists;
 SortedListElement_t **list_elements;
 char **keys;
+int using_spinlocks = 0, using_mutexes = 0;
 
 enum {
 	THREADS = 1,
@@ -127,6 +128,17 @@ int main (int argc, char **argv) {
 
 			break;
 		case SYNC:
+			switch(optarg[0]) {
+				case 's':
+					using_spinlocks = 1;
+					break;
+				case 'm':
+					using_mutexes = 1;
+					break;
+				default:
+					fprintf(stderr, "Unknown option for --sync\n");
+					exit(1);
+			}
 			break;
 
 		case LISTS:
@@ -156,6 +168,22 @@ int main (int argc, char **argv) {
 	int sl;
 	for (sl = 0; sl < num_lists; sl++) {
 		sorted_lists[sl] = SortedList_new_list();
+	}
+	// Initialize spin locks, mutexes
+	if (using_spinlocks) {
+		spin_locks = malloc(num_lists * sizeof(int));
+		for (sl = 0; sl < num_lists; sl++) {
+			spin_locks[sl] = 0;
+		}
+	}
+	else if (using_mutexes) {
+		blocking_mutexes = (pthread_mutex_t*)malloc(num_lists * sizeof(pthread_mutex_t));
+		for (sl = 0; sl < num_lists; sl++) {
+			if (pthread_mutex_init(&blocking_mutexes[sl], NULL)) {
+				perror("pthread_mutex_init");
+				exit(1);
+			}
+		}
 	}
 	pthread_t threads[num_threads];
 	list_elements = malloc(num_threads * num_iterations * sizeof(SortedListElement_t*));
@@ -220,7 +248,12 @@ int main (int argc, char **argv) {
 	}
 	free(keys);
 	free(list_elements);
-
+	if (using_spinlocks) {
+		free(spin_locks);
+	}
+	if (using_mutexes) {
+		free(blocking_mutexes);
+	}
 	return size_err;
 	
 

@@ -148,5 +148,5 @@ extern int opt_yield;
 #define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
 
 int *spin_locks;
-pthread_mutex_t blocking_mutexes;
+pthread_mutex_t *blocking_mutexes;
 #endif
