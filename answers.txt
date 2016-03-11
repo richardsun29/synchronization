@@ -65,3 +65,27 @@ so much more of the CPU time is wasted on threads waiting to run.
 1.
 
 2.
+
+
+3-1:
+
+1. The mutex must be held when pthread_cond_wait is called since
+pthread_cond_wait will proceed to unlock the mutex. So if one thread holds
+the mutex and is running its critical section, and a second thread calls
+pthread_cond_wait, then it prematurely unlocks the mutex before the first thread
+is finished its critical section, and a third thread that was blocked can now
+run its own critical section, causing race conditions.
+
+2. The mutex must be released when the waiting thread is blocked
+because if it keeps holding the mutex when it becomes blocked, then all the other
+threads wouldn't be able to run their critical sections because the mutex is locked.
+If the other threads' critical sections contain code to wake up the blocked thread that called
+pthread_cond_wait, then the thread that called pthread_cond_wait won't be able to wake up
+since those other threads will be blocked too, so deadlock occurs.
+
+3.
+
+4.
+
+5.
+
