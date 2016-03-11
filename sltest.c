@@ -62,7 +62,7 @@ void *thread_func(void *arg) {
 	int i, hash;
 	for (i = start_elem; i <= end_elem; i++) {
 		hash = list_hash(list_elements[i]->key);
-		SortedList_insert(sorted_lists[hash], list_elements[i]);
+		insert_func(sorted_lists[hash], list_elements[i]);
 	}
 	//printf("printing list:\n");
 	//SortedList_print(sorted_list);
@@ -70,7 +70,7 @@ void *thread_func(void *arg) {
 	// count lengths
 	int total_length = 0;
 	for (i = 0; i < num_lists; i++) {
-		int list_size = SortedList_length(sorted_lists[i]);
+		int list_size = length_func(sorted_lists[i]);
 		if (list_size == -1) {
 			fprintf(stderr, "length() detected corrupted list!\n");
 			exit(1);
@@ -83,13 +83,13 @@ void *thread_func(void *arg) {
 	for (i = start_elem; i <= end_elem; i++) {
 		const char *key = list_elements[i]->key;
 		hash = list_hash(key);
-		found = SortedList_lookup(sorted_lists[hash], key);
+		found = lookup_func(sorted_lists[hash], key);
 
 		if (found == NULL) {
 			fprintf(stderr, "lookup() did not find key!\n");
 			exit(1);
 		}
-		if (SortedList_delete(found)) {
+		if (delete_func(found)) {
 			fprintf(stderr, "delete() detected corrupted list!\n");
 			exit(1);
 		}
@@ -265,7 +265,7 @@ int main (int argc, char **argv) {
 		exit(1);
 	}
 
-	int sorted_list_size = SortedList_length(sorted_lists[0]);
+	int sorted_list_size = length_func(sorted_lists[0]);
 	int length_per_thread = num_iterations / num_lists;
 	long long operations = num_threads * num_iterations * length_per_thread;
 	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%d/2 avg len) = %lld operations\n",
