@@ -203,6 +203,13 @@ int main (int argc, char **argv) {
 	printf("elapsed time: %lld ns\n", elapsed);
 	printf("per operation: %lld ns\n", elapsed / operations);
 
+	SortedList_free(sorted_list);
+	for (i = 0; i < num_threads * num_iterations; i++) {
+		free(keys[i]);
+	}
+	free(keys);
+	free(list_elements);
+
 	return size_err;
 	
 
