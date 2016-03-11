@@ -137,12 +137,13 @@ int SortedList_delete(SortedListElement_t *element) {
 	}
 
 	element->prev->next = element->next;
-	if (element->next != NULL) {
-		element->next->prev = element->prev;
-	}
 
 	if (opt_yield & DELETE_YIELD) {
 		pthread_yield();
+	}
+
+	if (element->next != NULL) {
+		element->next->prev = element->prev;
 	}
 
 	free(element);
@@ -167,7 +168,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
 	while (element->next != NULL) {
 		element = element->next;
-		
+
 		if (opt_yield & SEARCH_YIELD) {
 			pthread_yield();
 		}
