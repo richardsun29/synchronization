@@ -39,12 +39,16 @@ void *thread_func(void *arg) {
 		fprintf(stderr, "length() detected corrupted list!\n");
 		exit(1);
 	}
+
 	// lookup, deletes
+	SortedListElement_t *found;
 	for (i = start_elem; i <= end_elem; i++) {
-		SortedList_lookup(sorted_list, list_elements[i]->key);
-	}
-	for (i = start_elem; i <= end_elem; i++) {
-		if (SortedList_delete(list_elements[i])) {
+		found = SortedList_lookup(sorted_list, list_elements[i]->key);
+		if (found == NULL) {
+			fprintf(stderr, "lookup() did not find key!\n");
+			exit(1);
+		}
+		if (SortedList_delete(found)) {
 			fprintf(stderr, "delete() detected corrupted list!\n");
 			exit(1);
 		}
