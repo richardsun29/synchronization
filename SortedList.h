@@ -154,4 +154,5 @@ extern int opt_yield;
 
 int *spin_locks;
 pthread_mutex_t *blocking_mutexes;
+int list_hash(const char *key);
 #endif

@@ -40,28 +40,51 @@ char *rand_key(void) {
 	return key;
 }
 
+int list_hash(const char *key) {
+	unsigned int hash = 0;
+	int i;
+	for (i = 0; i < KEY_LENGTH; i++) {
+		hash += key[i];
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+	return hash % num_lists;
+}
+
 void *thread_func(void *arg) {
 	long long thread_num = (long long)arg;
 	// insert elements
 	int start_elem = thread_num * num_iterations;
 	int end_elem = start_elem + num_iterations - 1;
- 	int i;
+	int i, hash;
 	for (i = start_elem; i <= end_elem; i++) {
-		SortedList_insert(sorted_lists[0], list_elements[i]);
+		hash = list_hash(list_elements[i]->key);
+		SortedList_insert(sorted_lists[hash], list_elements[i]);
 	}
 	//printf("printing list:\n");
 	//SortedList_print(sorted_list);
-	// count length
-	int list_size = SortedList_length(sorted_lists[0]);
-	if (list_size == -1) {
-		fprintf(stderr, "length() detected corrupted list!\n");
-		exit(1);
+
+	// count lengths
+	int total_length = 0;
+	for (i = 0; i < num_lists; i++) {
+		int list_size = SortedList_length(sorted_lists[i]);
+		if (list_size == -1) {
+			fprintf(stderr, "length() detected corrupted list!\n");
+			exit(1);
+		}
+		total_length += list_size;
 	}
 
 	// lookup, deletes
 	SortedListElement_t *found;
 	for (i = start_elem; i <= end_elem; i++) {
-		found = SortedList_lookup(sorted_lists[0], list_elements[i]->key);
+		const char *key = list_elements[i]->key;
+		hash = list_hash(key);
+		found = SortedList_lookup(sorted_lists[hash], key);
+
 		if (found == NULL) {
 			fprintf(stderr, "lookup() did not find key!\n");
 			exit(1);
@@ -159,6 +182,7 @@ int main (int argc, char **argv) {
 			break;
 
 		case LISTS:
+			num_lists = strtol(optarg, NULL, 10);
 			break;
 
 		default:
