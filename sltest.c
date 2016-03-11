@@ -137,6 +137,7 @@ int main (int argc, char **argv) {
 				case 's':
 					printf("set spin locks\n");
 					using_spinlocks = 1;
+					using_mutexes = 0;
 					insert_func = SortedList_insert_spinlock;
 					delete_func = SortedList_delete_spinlock;
 					lookup_func = SortedList_lookup_spinlock;
@@ -145,6 +146,7 @@ int main (int argc, char **argv) {
 				case 'm':
 					printf("set mutexes\n");
 					using_mutexes = 1;
+					using_spinlocks = 0;
 					insert_func = SortedList_insert_mutex;
 					delete_func = SortedList_delete_mutex;
 					lookup_func = SortedList_lookup_mutex;
