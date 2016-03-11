@@ -16,6 +16,10 @@ SortedList_t **sorted_lists;
 SortedListElement_t **list_elements;
 char **keys;
 int using_spinlocks = 0, using_mutexes = 0;
+void (*insert_func) (SortedList_t*, SortedListElement_t*) = SortedList_insert;
+int (*delete_func) (SortedListElement_t*) = SortedList_delete;
+SortedListElement_t* (*lookup_func) (SortedList_t*, const char*) = SortedList_lookup;
+int (*length_func) (SortedList_t*) = SortedList_length;
 
 enum {
 	THREADS = 1,
@@ -112,7 +116,7 @@ int main (int argc, char **argv) {
 				for (i = 0; optarg[i] != 0; i++) {
 					switch(optarg[i]) {
 						case 'i':
-							opt_yield |= INSERT_YIELD;	
+							opt_yield |= INSERT_YIELD;
 							break;
 						case 'd':
 							opt_yield |= DELETE_YIELD;
@@ -132,9 +136,17 @@ int main (int argc, char **argv) {
 			switch(optarg[0]) {
 				case 's':
 					using_spinlocks = 1;
+					insert_func = SortedList_insert_spinlock;
+					delete_func = SortedList_delete_spinlock;
+					lookup_func = SortedList_lookup_spinlock;
+					length_func = SortedList_length_spinlock;
 					break;
 				case 'm':
 					using_mutexes = 1;
+					insert_func = SortedList_insert_mutex;
+					delete_func = SortedList_delete_mutex;
+					lookup_func = SortedList_lookup_mutex;
+					length_func = SortedList_length_mutex;
 					break;
 				default:
 					fprintf(stderr, "Unknown option for --sync\n");
