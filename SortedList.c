@@ -354,8 +354,6 @@ int SortedList_length(SortedList_t *list) {
 		return 0;
 	}
 	int length = 1;
-	while (__sync_lock_test_and_set(&spin_locks[0], 1))
-		continue;
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
@@ -377,6 +375,8 @@ int SortedList_length_spinlock(SortedList_t *list) {
 		return 0;
 	}
 	int length = 1;
+	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+		continue;
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
