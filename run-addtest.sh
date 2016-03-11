@@ -25,7 +25,7 @@ run () {
 
 # gets average per-op from '$runs' runs
 avg_run () {
-	local runs=50
+	local runs=100
 
 	local sum=0
 	for i in `seq $runs`; do
@@ -38,7 +38,7 @@ avg_run () {
 
 # Threads vs. per operation
 
-threads="$(seq 10)"
+max_threads=20
 iterations=10000
 
 threads_data="data/addtest-threads.dat"
@@ -46,23 +46,25 @@ threads_img="graphs/addtest-threads.png"
 
 printf "#threads\tnosync\tmutex\tspin\tcas\n" > $threads_data
 
-for nthreads in ${threads[@]}; do
+nthreads=1
+while [ $nthreads -le $max_threads ]; do
 	printf "\r$nthreads threads..."
 	avg_n=$(avg_run $nthreads $iterations)
 	avg_m=$(avg_run $nthreads $iterations m)
 	avg_s=$(avg_run $nthreads $iterations s)
 	avg_c=$(avg_run $nthreads $iterations c)
 	printf "$nthreads\t$avg_n\t$avg_m\t$avg_s\t$avg_c\n" >> $threads_data
+	let "nthreads++"
 done
 
 echo "done"
 
-gnuplot -p -e "
+gnuplot -e "
 set title 'Average Time per Operation vs. Number of Threads ($iterations iterations)';
 set key box;
 set key left top;
 set xlabel 'Number of Threads';
-set xrange [0:11];
+set xrange [0:$(($max_threads+1))];
 set ylabel 'Time per Operation (ns)';
 set terminal pngcairo size 800,600 enhanced;
 set output \"$threads_img\";
@@ -76,7 +78,7 @@ plot \"$threads_data\" using 1:2 title 'no sync',  \
 
 # Iterations vs. per operation
 
-iterations=(20 100 500 1000 5000 10000)
+max_iterations=10000000
 threads=4
 
 iterations_data="data/addtest-iterations.dat"
@@ -84,19 +86,21 @@ iterations_img="graphs/addtest-iterations.png"
 
 printf "# Iterations\tTime per operation\n" > $iterations_data
 
-for niterations in ${iterations[@]}; do
+niterations=1
+while [ $niterations -le $max_iterations ]; do
 	printf "\r$niterations iterations..."
 	per_op=$(avg_run $threads $niterations)
 	printf "$niterations\t$per_op\n" >> $iterations_data
+	let "niterations *= 2"
 done
 
 echo "done"
 
-gnuplot -p -e "
+gnuplot -e "
 set title 'Average Time per Operation vs. Number of Iterations ($threads threads)';
 set xlabel 'Number of Iterations';
 unset key;
-set xrange [10:100000];
+set xrange [1:$max_iterations];
 set ylabel 'Time per Operation (ns)';
 set logscale;
 set offset graph 0.10, 0.10;
