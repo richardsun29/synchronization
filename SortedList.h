@@ -139,6 +139,11 @@ SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key
  */
 int SortedList_length(SortedList_t *list);
 
+int SortedList_length_spinlock(SortedList_t *list);
+
+int SortedList_length_mutex(SortedList_t *list);
+
+
 /**
  * variable to enable diagnostic calls to pthread_yield
  */
