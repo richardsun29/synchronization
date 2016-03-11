@@ -6,8 +6,8 @@ mkdir -p graphs data
 # get per-op from addtest
 # run(nthreads, niterations, sync = none, yield = 0)
 run () {
-	local threads=$1
-	local iterations=$2
+	local threads="--threads=$1"
+	local iterations="--iterations=$2"
 	local sync=
 	local yield=
 
@@ -18,14 +18,14 @@ run () {
 		yield="--yield=1"
 	fi
 
-	cmd="./addtest --threads=$threads --iterations=$iterations $sync $yield"
+	cmd="./addtest $threads $iterations $sync $yield"
 	output="$($cmd 2>/dev/null)"
 	echo "$output" | grep "per operation" | awk '{print $3}'
 }
 
 # gets average per-op from '$runs' runs
 avg_run () {
-	local runs=100
+	local runs=2
 
 	local sum=0
 	for i in `seq $runs`; do
@@ -36,7 +36,7 @@ avg_run () {
 }
 
 
-# Threads vs. per operation
+# per operation vs. threads
 
 max_threads=20
 iterations=10000
@@ -60,7 +60,7 @@ done
 echo "done"
 
 gnuplot -e "
-set title 'Average Time per Operation vs. Number of Threads ($iterations iterations)';
+set title 'addtest: Avg. Time per Operation vs. Number of Threads ($iterations iterations)';
 set key box;
 set key left top;
 set xlabel 'Number of Threads';
@@ -76,10 +76,10 @@ plot \"$threads_data\" using 1:2 title 'no sync',  \
 
 
 
-# Iterations vs. per operation
+# per operation vs. iterations
 
 max_iterations=10000000
-threads=4
+threads=1
 
 iterations_data="data/addtest-iterations.dat"
 iterations_img="graphs/addtest-iterations.png"
@@ -97,7 +97,7 @@ done
 echo "done"
 
 gnuplot -e "
-set title 'Average Time per Operation vs. Number of Iterations ($threads threads)';
+set title 'addtest: Avg. Time per Operation vs. Number of Iterations';
 set xlabel 'Number of Iterations';
 unset key;
 set xrange [1:$max_iterations];
