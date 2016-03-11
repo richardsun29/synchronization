@@ -34,20 +34,19 @@ overhead to the thread each time it calls the add function.
 
 1.3:
 
-1. All the options perform similarly for low numbers of threads because
-not much time is spent by the threads waiting to run the critical section
-in the add function. Only one thread can run the critical section at a time,
-so with a low number of threads, there are not many threads that have to be
-blocked.
+1. All the options perform similarly for low numbers of threads because not
+much time is spent by the threads waiting to run the critical section in the
+add function. Only one thread can run the critical section at a time, so with a
+low number of threads, there are not many threads that have to be blocked.
 
 2. The three protected operations slow down as the number of threads rises
-because only one thread can run the critical section at a time,
-so it has to block a large number of threads from running, so all of the
-threads spent more time waiting to run.
+because only one thread can run the critical section at a time, so it has to
+block a large number of threads from running, so all of the threads spent more
+time waiting to run.
 
 3. Spin locks are expensive for large numbers of threads because all of the
-threads are kept alive and they all use CPU time instead of being blocked,
-so much more of the CPU time is wasted on threads waiting to run.
+threads are kept alive and they all use CPU time instead of being blocked, so
+much more of the CPU time is wasted on threads waiting to run.
 
 
 2.1:
@@ -70,24 +69,26 @@ so much more of the CPU time is wasted on threads waiting to run.
 3-1:
 
 1. The mutex must be held when pthread_cond_wait is called since
-pthread_cond_wait will proceed to unlock the mutex. So if one thread holds
-the mutex and is running its critical section, and a second thread calls
-pthread_cond_wait, then it prematurely unlocks the mutex before the first thread
-is finished its critical section, and a third thread that was blocked can now
-run its own critical section, causing race conditions.
+pthread_cond_wait will proceed to unlock the mutex. So if one thread holds the
+mutex and is running its critical section, and a second thread calls
+pthread_cond_wait, then it prematurely unlocks the mutex before the first
+thread is finished its critical section, and a third thread that was blocked
+can now run its own critical section, causing race conditions.
 
-2. The mutex must be released when the waiting thread is blocked
-because if it keeps holding the mutex when it becomes blocked, then all the other
-threads wouldn't be able to run their critical sections because the mutex is locked.
-If the other threads' critical sections contain code to wake up the blocked thread that called
-pthread_cond_wait, then the thread that called pthread_cond_wait won't be able to wake up
-since those other threads will be blocked too, so deadlock occurs.
+2. The mutex must be released when the waiting thread is blocked because if it
+keeps holding the mutex when it becomes blocked, then all the other threads
+wouldn't be able to run their critical sections because the mutex is locked.
+If the other threads' critical sections contain code to wake up the blocked
+thread that called pthread_cond_wait, then the thread that called
+pthread_cond_wait won't be able to wake up since those other threads will be
+blocked too, so deadlock occurs.
 
-3. The mutex must be reacquired when the calling thread continues because
-the calling thread must make sure that the other threads are still not running
-their critical sections, and the calling thread should still block if the other threads
-haven't released the mutex yet. Also, the calling thread will run more of its critical section,
-so it must hold the mutex, not allowing other threads to run their critical sections.
+3. The mutex must be reacquired when the calling thread continues because the
+calling thread must make sure that the other threads are still not running
+their critical sections, and the calling thread should still block if the other
+threads haven't released the mutex yet. Also, the calling thread will run more
+of its critical section, so it must hold the mutex, not allowing other threads
+to run their critical sections.
 
 4. The actions of pthread_mutex_unlock and pthread_cond_wait must be done
 atomically. If the user releases the mutex before calling pthread_cond_wait,
