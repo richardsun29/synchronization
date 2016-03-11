@@ -101,7 +101,7 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	element->next = next;
 
 	if (opt_yield & INSERT_YIELD) {
-		//printf("Insert yielding\n");
+		printf("Insert yielding\n");
 		pthread_yield();
 	}
 
@@ -139,6 +139,7 @@ int SortedList_delete(SortedListElement_t *element) {
 	element->prev->next = element->next;
 
 	if (opt_yield & DELETE_YIELD) {
+		printf("Delete yielding\n");
 		pthread_yield();
 	}
 
@@ -170,6 +171,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 		element = element->next;
 
 		if (opt_yield & SEARCH_YIELD) {
+			printf("Lookup yielding\n");
 			pthread_yield();
 		}
 
@@ -205,6 +207,7 @@ int SortedList_length(SortedList_t *list) {
 		}
 		element = element->next;
 		if (opt_yield & SEARCH_YIELD) {
+			printf("Length yielding\n");
 			pthread_yield();
 		}
 		length++;

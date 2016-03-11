@@ -88,19 +88,23 @@ int main (int argc, char **argv) {
 			break;
 
 		case YIELD:
-			// TODO: change this to a loop
-			switch(optarg[0]) {
-			case 'i':
-				opt_yield |= INSERT_YIELD;	
-				break;
-			case 'd':
-				opt_yield |= DELETE_YIELD;
-				break;
-			case 's':
-				opt_yield |= SEARCH_YIELD;
-				break;
-			default:
-				fprintf(stderr, "Unknown option for --yield\n");
+			{
+				int i;
+				for (i = 0; optarg[i] != 0; i++) {
+					switch(optarg[i]) {
+						case 'i':
+							opt_yield |= INSERT_YIELD;	
+							break;
+						case 'd':
+							opt_yield |= DELETE_YIELD;
+							break;
+						case 's':
+							opt_yield |= SEARCH_YIELD;
+							break;
+						default:
+							fprintf(stderr, "Unknown option for --yield\n");
+					}
+				}
 			}
 
 			break;
