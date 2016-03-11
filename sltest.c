@@ -257,35 +257,4 @@ int main (int argc, char **argv) {
 	}
 	return size_err;
 	
-
-	/*SortedList_t *list = SortedList_new_list();
-	SortedListElement_t *e1, *e2, *e3, *e4, *e5, *e6;
-	e1 = SortedList_new_element("b");
-	SortedList_insert(list, e1);
-	SortedList_delete(e1);
-	e2 = SortedList_new_element("c");
-	SortedList_insert(list, e2);
-	SortedList_delete(e2);
-	e3 = SortedList_new_element("b234");
-	SortedList_insert(list, e3);
-	SortedList_delete(e3);
-	e4 = SortedList_new_element("zzz");
-	SortedList_insert(list, e4);
-	SortedList_delete(e4);
-	e5 = SortedList_new_element("a");
-	SortedList_insert(list, e5);
-	SortedList_print(list);
-	printf("list length with e5: %d\n", SortedList_length(list));
-	printf("e5 was found in list: %s\n", SortedList_lookup(list, "a")->key);
-	printf("NOTFOUND shouldn't be found, lookup should return NULL: %d\n", SortedList_lookup(list, "NOTHERE") == NULL);
-	SortedList_delete(e1);
-	SortedList_print(list);
-	printf("list length w/o e5: %d\n", SortedList_length(list));
-
-	e6 = SortedList_new_element("Delete this!");
-	SortedList_insert(list, e6);
-	SortedList_free(list);*/
-
-
-	//return 0;
 }
