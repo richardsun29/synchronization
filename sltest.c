@@ -31,10 +31,25 @@ void *thread_func(void *arg) {
 	for (i = start_elem; i <= end_elem; i++) {
 		SortedList_insert(sorted_list, list_elements[i]);
 	}
+	//printf("printing list:\n");
+	//SortedList_print(sorted_list);
 	// count length
 	int list_size = SortedList_length(sorted_list);
-	// TODO: lookup, deletes
-	return arg;
+	if (list_size == -1) {
+		fprintf(stderr, "length() detected corrupted list!\n");
+		exit(1);
+	}
+	// lookup, deletes
+	for (i = start_elem; i <= end_elem; i++) {
+		SortedList_lookup(sorted_list, list_elements[i]->key);
+	}
+	for (i = start_elem; i <= end_elem; i++) {
+		if (SortedList_delete(list_elements[i])) {
+			fprintf(stderr, "delete() detected corrupted list!\n");
+			exit(1);
+		}
+	}
+	return (void*)arg;
 }
 
 static struct option long_options[] =
@@ -121,7 +136,7 @@ int main (int argc, char **argv) {
 	for (i = 0; i < num_threads; i++) {
 		int j;
 		for (j = 0; j < num_iterations; j++) {
-			list_elements[i * num_iterations + j] = SortedList_new_element(&digits[num_iterations % 10]);
+			list_elements[i * num_iterations + j] = SortedList_new_element(&digits[i * num_iterations + j % 10]);
 		}
 	}
 	struct timespec start_time;
@@ -153,9 +168,10 @@ int main (int argc, char **argv) {
 	}
 
 	int sorted_list_size = SortedList_length(sorted_list);
-	long long operations = num_threads * num_iterations * 2;
-	printf("%lld threads x %lld iterations x (add + subtract) = %lld operations\n",
-		num_threads, num_iterations, operations);
+	int length_per_thread = num_iterations / num_threads;
+	long long operations = num_threads * num_iterations * length_per_thread;
+	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%d/2 avg len) = %lld operations\n",
+		num_threads, num_iterations, length_per_thread, operations);
 
 	int size_err = sorted_list_size != 0;
 	if (size_err) {
