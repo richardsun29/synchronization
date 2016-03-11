@@ -292,7 +292,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	return NULL;
 }
 SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key) {
-	
+	int list_index = &list - sorted_lists;
 	// printf("spinlock lookup\n");
 	while (__sync_lock_test_and_set(&spin_locks[0], 1))
 		continue;
@@ -306,17 +306,18 @@ SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *
 		}
 
 		if (strcmp(element->key, key) == 0) {
-			__sync_lock_release(&spin_locks[0]);
+			__sync_lock_release(&spin_locks[list_index]);
 			return element;
 		}
 	}
-	__sync_lock_release(&spin_locks[0]);
+	__sync_lock_release(&spin_locks[list_index]);
 	return NULL;
 }
 SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
+	int list_index = list_hash(element->key);
 	// printf("mutex lookup\n");
-	pthread_mutex_lock(&blocking_mutexes[0]);
+	pthread_mutex_lock(&blocking_mutexes[list_index]);
 
 	while (element->next != NULL) {
 		element = element->next;
@@ -327,12 +328,12 @@ SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key
 		}
 
 		if (strcmp(element->key, key) == 0) {
-			pthread_mutex_unlock(&blocking_mutexes[0]);
+			pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 			return element;
 		}
 	}
-	pthread_mutex_unlock(&blocking_mutexes[0]);
+	pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 	return NULL;
 }
@@ -372,11 +373,12 @@ int SortedList_length(SortedList_t *list) {
 }
 int SortedList_length_spinlock(SortedList_t *list) {
 	SortedListElement_t *element = (SortedListElement_t*)list->next;
+	int list_index = &list - sorted_lists;
 	if (element == NULL) {
 		return 0;
 	}
 	int length = 1;
-	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
 		continue;
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
@@ -390,21 +392,22 @@ int SortedList_length_spinlock(SortedList_t *list) {
 		}
 		length++;
 	}
-	__sync_lock_release(&spin_locks[0]);
+	__sync_lock_release(&spin_locks[list_index]);
 	return length;
 }
 int SortedList_length_mutex(SortedList_t *list) {
 	SortedListElement_t *element = (SortedListElement_t*)list->next;
+	int list_index = &list - sorted_lists;
 	if (element == NULL) {
 		return 0;
 	}
 	int length = 1;
-	pthread_mutex_lock(&blocking_mutexes[0]);
+	pthread_mutex_lock(&blocking_mutexes[list_index]);
 
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
-			pthread_mutex_unlock(&blocking_mutexes[0]);
+			pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 			return -1;
 		}
@@ -415,7 +418,7 @@ int SortedList_length_mutex(SortedList_t *list) {
 		}
 		length++;
 	}
-	pthread_mutex_unlock(&blocking_mutexes[0]);
+	pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 	return length;
 }
