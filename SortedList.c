@@ -294,6 +294,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 }
 SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
+	printf("spinlock lookup\n");
 	while (__sync_lock_test_and_set(&spin_locks[0], 1))
 		continue;
 	while (element->next != NULL) {
@@ -314,7 +315,7 @@ SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *
 }
 SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
-	
+	printf("mutex lookup\n");
 	pthread_mutex_lock(&blocking_mutexes[0]);
 
 	while (element->next != NULL) {

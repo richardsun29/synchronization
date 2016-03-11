@@ -135,6 +135,7 @@ int main (int argc, char **argv) {
 		case SYNC:
 			switch(optarg[0]) {
 				case 's':
+					printf("set spin locks\n");
 					using_spinlocks = 1;
 					insert_func = SortedList_insert_spinlock;
 					delete_func = SortedList_delete_spinlock;
@@ -142,6 +143,7 @@ int main (int argc, char **argv) {
 					length_func = SortedList_length_spinlock;
 					break;
 				case 'm':
+					printf("set mutexes\n");
 					using_mutexes = 1;
 					insert_func = SortedList_insert_mutex;
 					delete_func = SortedList_delete_mutex;
