@@ -114,7 +114,8 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 }
 
 void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element) {
-	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+	int list_index = &list - sorted_lists;
+	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
 		continue;
 	// find nodes to insert element between
 	SortedListElement_t *prev = list,
@@ -138,10 +139,11 @@ void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element
 	}
 	prev->next = element;
 
-	__sync_lock_release(&spin_locks[0]);
+	__sync_lock_release(&spin_locks[list_index]);
 }
 void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
-	pthread_mutex_lock(&blocking_mutexes[0]);
+	int list_index = &list - sorted_lists;
+	pthread_mutex_lock(&blocking_mutexes[list_index]);
 
 	// find nodes to insert element between
 	SortedListElement_t *prev = list,
@@ -164,7 +166,7 @@ void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
 	}
 	prev->next = element;
 
-	pthread_mutex_unlock(&blocking_mutexes[0]);
+	pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 }
 /**
@@ -206,7 +208,8 @@ int SortedList_delete(SortedListElement_t *element) {
 	return 0;
 }
 int SortedList_delete_spinlock(SortedListElement_t *element) {
-	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+	int list_index = list_hash(element->key);
+	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
 		continue;
 
 	// check for corrupted prev/next pointers
@@ -227,16 +230,16 @@ int SortedList_delete_spinlock(SortedListElement_t *element) {
 		element->next->prev = element->prev;
 	}
 
-	__sync_lock_release(&spin_locks[0]);
+	__sync_lock_release(&spin_locks[list_index]);
 	free(element);
 	return 0;
 }
 int SortedList_delete_mutex(SortedListElement_t *element) {
+	int list_index = list_hash(element->key);
+	pthread_mutex_lock(&blocking_mutexes[list_index]);
+
 	// check for corrupted prev/next pointers
 	// element->prev should never be NULL
-	
-	pthread_mutex_lock(&blocking_mutexes[0]);
-
 	if ((element->next != NULL && element->next->prev != element)
 	    || element->prev->next != element) {
 		return 1;
@@ -253,7 +256,7 @@ int SortedList_delete_mutex(SortedListElement_t *element) {
 		element->next->prev = element->prev;
 	}
 	
-	pthread_mutex_unlock(&blocking_mutexes[0]);
+	pthread_mutex_unlock(&blocking_mutexes[list_index]);
 
 	free(element);
 	return 0;

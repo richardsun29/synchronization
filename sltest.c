@@ -12,7 +12,6 @@
 int opt_yield = 0;
 long long num_iterations = 1;
 long long num_lists = 1;
-SortedList_t **sorted_lists;
 SortedListElement_t **list_elements;
 char **keys;
 int using_spinlocks = 0, using_mutexes = 0;

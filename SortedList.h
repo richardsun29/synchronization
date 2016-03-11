@@ -155,4 +155,5 @@ extern int opt_yield;
 int *spin_locks;
 pthread_mutex_t *blocking_mutexes;
 int list_hash(const char *key);
+SortedList_t **sorted_lists;
 #endif
