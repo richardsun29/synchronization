@@ -142,6 +142,8 @@ void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
 	SortedListElement_t *prev = list,
 			    *next = list->next;
 
+	pthread_mutex_lock(&blocking_mutexes[0]);
+
 	while (next != NULL && strcmp(element->key, next->key) > 0) {
 		prev = next;
 		next = next->next;
@@ -159,6 +161,9 @@ void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
 		next->prev = element;
 	}
 	prev->next = element;
+
+	pthread_mutex_unlock(&blocking_mutexes[0]);
+
 }
 /**
  * SortedList_delete ... remove an element from a sorted list
@@ -223,6 +228,9 @@ int SortedList_delete_spinlock(SortedListElement_t *element) {
 int SortedList_delete_mutex(SortedListElement_t *element) {
 	// check for corrupted prev/next pointers
 	// element->prev should never be NULL
+	
+	pthread_mutex_lock(&blocking_mutexes[0]);
+
 	if ((element->next != NULL && element->next->prev != element)
 	    || element->prev->next != element) {
 		return 1;
@@ -238,6 +246,8 @@ int SortedList_delete_mutex(SortedListElement_t *element) {
 	if (element->next != NULL) {
 		element->next->prev = element->prev;
 	}
+	
+	pthread_mutex_unlock(&blocking_mutexes[0]);
 
 	free(element);
 	return 0;
@@ -290,6 +300,9 @@ SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *
 }
 SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
+	
+	pthread_mutex_lock(&blocking_mutexes[0]);
+
 	while (element->next != NULL) {
 		element = element->next;
 
@@ -299,9 +312,13 @@ SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key
 		}
 
 		if (strcmp(element->key, key) == 0) {
+			pthread_mutex_unlock(&blocking_mutexes[0]);
+
 			return element;
 		}
 	}
+	pthread_mutex_unlock(&blocking_mutexes[0]);
+
 	return NULL;
 }
 
@@ -363,9 +380,13 @@ int SortedList_length_mutex(SortedList_t *list) {
 		return 0;
 	}
 	int length = 1;
+	pthread_mutex_lock(&blocking_mutexes[0]);
+
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
+			pthread_mutex_unlock(&blocking_mutexes[0]);
+
 			return -1;
 		}
 		element = element->next;
@@ -375,6 +396,8 @@ int SortedList_length_mutex(SortedList_t *list) {
 		}
 		length++;
 	}
+	pthread_mutex_unlock(&blocking_mutexes[0]);
+
 	return length;
 }
 
