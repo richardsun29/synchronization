@@ -11,6 +11,7 @@
 
 int opt_yield = 0;
 long long num_iterations = 1;
+long long num_lists = 1;
 SortedList_t *sorted_list;
 SortedListElement_t **list_elements;
 
@@ -172,7 +173,7 @@ int main (int argc, char **argv) {
 	}
 
 	int sorted_list_size = SortedList_length(sorted_list);
-	int length_per_thread = num_iterations / num_threads;
+	int length_per_thread = num_iterations / num_lists;
 	long long operations = num_threads * num_iterations * length_per_thread;
 	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%d/2 avg len) = %lld operations\n",
 		num_threads, num_iterations, length_per_thread, operations);
