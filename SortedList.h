@@ -1,6 +1,8 @@
 #ifndef SORTEDLIST_H
 #define SORTEDLIST_H
 
+#include <pthread.h>
+
 /*
  * SortedList (and SortedListElement)
  *
@@ -77,6 +79,10 @@ void SortedList_print(SortedList_t *list);
  */
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element);
 
+void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element);
+
+void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element);
+
 /**
  * SortedList_delete ... remove an element from a sorted list
  *
@@ -95,6 +101,10 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element);
  */
 int SortedList_delete(SortedListElement_t *element);
 
+int SortedList_delete_spinlock(SortedListElement_t *element);
+
+int SortedList_delete_mutex(SortedListElement_t *element);
+
 /**
  * SortedList_lookup ... search sorted list for a key
  *
@@ -110,6 +120,10 @@ int SortedList_delete(SortedListElement_t *element);
  *		call pthread_yield in middle of critical section
  */
 SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
+
+SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key);
+
+SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key);
 
 /**
  * SortedList_length ... count elements in a sorted list
@@ -133,4 +147,6 @@ extern int opt_yield;
 #define	DELETE_YIELD	0x02	// yield in delete critical section
 #define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
 
+int *spin_locks;
+pthread_mutex_t blocking_mutexes;
 #endif

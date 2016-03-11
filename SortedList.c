@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <pthread.h>
+//#include <pthread.h>
 
 #include "SortedList.h"
+
 
 /**
  * SortedList_new_list ... create a new sorted list
@@ -111,7 +112,54 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	}
 	prev->next = element;
 }
+void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element) {
 
+	// find nodes to insert element between
+	SortedListElement_t *prev = list,
+			    *next = list->next;
+
+	while (next != NULL && strcmp(element->key, next->key) > 0) {
+		prev = next;
+		next = next->next;
+	}
+
+	element->next = next;
+
+	if (opt_yield & INSERT_YIELD) {
+		printf("Insert yielding\n");
+		pthread_yield();
+	}
+
+	element->prev = prev;
+	if (next != NULL) { // not inserting at end of list
+		next->prev = element;
+	}
+	prev->next = element;
+}
+void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
+
+	// find nodes to insert element between
+	SortedListElement_t *prev = list,
+			    *next = list->next;
+
+	while (next != NULL && strcmp(element->key, next->key) > 0) {
+		prev = next;
+		next = next->next;
+	}
+
+	element->next = next;
+
+	if (opt_yield & INSERT_YIELD) {
+		printf("Insert yielding\n");
+		pthread_yield();
+	}
+
+	element->prev = prev;
+	if (next != NULL) { // not inserting at end of list
+		next->prev = element;
+	}
+	prev->next = element;
+}
 /**
  * SortedList_delete ... remove an element from a sorted list
  *
@@ -150,7 +198,50 @@ int SortedList_delete(SortedListElement_t *element) {
 	free(element);
 	return 0;
 }
+int SortedList_delete_spinlock(SortedListElement_t *element) {
+	// check for corrupted prev/next pointers
+	// element->prev should never be NULL
+	if ((element->next != NULL && element->next->prev != element)
+	    || element->prev->next != element) {
+		return 1;
+	}
 
+	element->prev->next = element->next;
+
+	if (opt_yield & DELETE_YIELD) {
+		printf("Delete yielding\n");
+		pthread_yield();
+	}
+
+	if (element->next != NULL) {
+		element->next->prev = element->prev;
+	}
+
+	free(element);
+	return 0;
+}
+int SortedList_delete_mutex(SortedListElement_t *element) {
+	// check for corrupted prev/next pointers
+	// element->prev should never be NULL
+	if ((element->next != NULL && element->next->prev != element)
+	    || element->prev->next != element) {
+		return 1;
+	}
+
+	element->prev->next = element->next;
+
+	if (opt_yield & DELETE_YIELD) {
+		printf("Delete yielding\n");
+		pthread_yield();
+	}
+
+	if (element->next != NULL) {
+		element->next->prev = element->prev;
+	}
+
+	free(element);
+	return 0;
+}
 /**
  * SortedList_lookup ... search sorted list for a key
  *
@@ -181,6 +272,38 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	}
 	return NULL;
 }
+SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key) {
+	SortedListElement_t *element = (SortedListElement_t*)list;
+	while (element->next != NULL) {
+		element = element->next;
+
+		if (opt_yield & SEARCH_YIELD) {
+			printf("Lookup yielding\n");
+			pthread_yield();
+		}
+
+		if (strcmp(element->key, key) == 0) {
+			return element;
+		}
+	}
+	return NULL;
+}
+SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key) {
+	SortedListElement_t *element = (SortedListElement_t*)list;
+	while (element->next != NULL) {
+		element = element->next;
+
+		if (opt_yield & SEARCH_YIELD) {
+			printf("Lookup yielding\n");
+			pthread_yield();
+		}
+
+		if (strcmp(element->key, key) == 0) {
+			return element;
+		}
+	}
+	return NULL;
+}
 
 /**
  * SortedList_length ... count elements in a sorted list
@@ -195,6 +318,46 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
  *		call pthread_yield in middle of critical section
  */
 int SortedList_length(SortedList_t *list) {
+	SortedListElement_t *element = (SortedListElement_t*)list->next;
+	if (element == NULL) {
+		return 0;
+	}
+	int length = 1;
+	while (element->next != NULL) {
+		if ((element->next != NULL && element->next->prev != element)
+				|| element->prev->next != element) {
+			return -1;
+		}
+		element = element->next;
+		if (opt_yield & SEARCH_YIELD) {
+			printf("Length yielding\n");
+			pthread_yield();
+		}
+		length++;
+	}
+	return length;
+}
+int SortedList_length_spinlock(SortedList_t *list) {
+	SortedListElement_t *element = (SortedListElement_t*)list->next;
+	if (element == NULL) {
+		return 0;
+	}
+	int length = 1;
+	while (element->next != NULL) {
+		if ((element->next != NULL && element->next->prev != element)
+				|| element->prev->next != element) {
+			return -1;
+		}
+		element = element->next;
+		if (opt_yield & SEARCH_YIELD) {
+			printf("Length yielding\n");
+			pthread_yield();
+		}
+		length++;
+	}
+	return length;
+}
+int SortedList_length_mutex(SortedList_t *list) {
 	SortedListElement_t *element = (SortedListElement_t*)list->next;
 	if (element == NULL) {
 		return 0;

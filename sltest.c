@@ -12,7 +12,7 @@
 int opt_yield = 0;
 long long num_iterations = 1;
 long long num_lists = 1;
-SortedList_t *sorted_list;
+SortedList_t **sorted_lists;
 SortedListElement_t **list_elements;
 char **keys;
 
@@ -42,12 +42,12 @@ void *thread_func(void *arg) {
 	int end_elem = start_elem + num_iterations - 1;
  	int i;
 	for (i = start_elem; i <= end_elem; i++) {
-		SortedList_insert(sorted_list, list_elements[i]);
+		SortedList_insert(sorted_lists[0], list_elements[i]);
 	}
 	//printf("printing list:\n");
 	//SortedList_print(sorted_list);
 	// count length
-	int list_size = SortedList_length(sorted_list);
+	int list_size = SortedList_length(sorted_lists[0]);
 	if (list_size == -1) {
 		fprintf(stderr, "length() detected corrupted list!\n");
 		exit(1);
@@ -56,7 +56,7 @@ void *thread_func(void *arg) {
 	// lookup, deletes
 	SortedListElement_t *found;
 	for (i = start_elem; i <= end_elem; i++) {
-		found = SortedList_lookup(sorted_list, list_elements[i]->key);
+		found = SortedList_lookup(sorted_lists[0], list_elements[i]->key);
 		if (found == NULL) {
 			fprintf(stderr, "lookup() did not find key!\n");
 			exit(1);
@@ -147,8 +147,16 @@ int main (int argc, char **argv) {
 		fprintf(stderr, "Iterations number is less than 1\n");
 		exit(1);
 	}
-
-	sorted_list = SortedList_new_list();
+	if (num_lists < 1) {
+		fprintf(stderr, "Lists number is less than 1\n");
+		exit(1);
+	}
+	
+	sorted_lists = malloc(num_lists * sizeof(SortedList_t*));
+	int sl;
+	for (sl = 0; sl < num_lists; sl++) {
+		sorted_lists[sl] = SortedList_new_list();
+	}
 	pthread_t threads[num_threads];
 	list_elements = malloc(num_threads * num_iterations * sizeof(SortedListElement_t*));
 	keys = (char**)malloc(num_threads * num_iterations * sizeof(char*));
@@ -188,7 +196,7 @@ int main (int argc, char **argv) {
 		exit(1);
 	}
 
-	int sorted_list_size = SortedList_length(sorted_list);
+	int sorted_list_size = SortedList_length(sorted_lists[0]);
 	int length_per_thread = num_iterations / num_lists;
 	long long operations = num_threads * num_iterations * length_per_thread;
 	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%d/2 avg len) = %lld operations\n",
@@ -204,7 +212,9 @@ int main (int argc, char **argv) {
 	printf("elapsed time: %lld ns\n", elapsed);
 	printf("per operation: %lld ns\n", elapsed / operations);
 
-	SortedList_free(sorted_list);
+	for (sl = 0; sl < num_lists; sl++) {
+		SortedList_free(sorted_lists[sl]);
+	}
 	for (i = 0; i < num_threads * num_iterations; i++) {
 		free(keys[i]);
 	}
