@@ -112,11 +112,15 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	}
 	prev->next = element;
 }
+
 void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element) {
 
 	// find nodes to insert element between
 	SortedListElement_t *prev = list,
 			    *next = list->next;
+
+	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+		continue;
 
 	while (next != NULL && strcmp(element->key, next->key) > 0) {
 		prev = next;
@@ -135,6 +139,8 @@ void SortedList_insert_spinlock(SortedList_t *list, SortedListElement_t *element
 		next->prev = element;
 	}
 	prev->next = element;
+
+	__sync_lock_release(&spin_locks[0]);
 }
 void SortedList_insert_mutex(SortedList_t *list, SortedListElement_t *element) {
 
@@ -204,6 +210,9 @@ int SortedList_delete(SortedListElement_t *element) {
 	return 0;
 }
 int SortedList_delete_spinlock(SortedListElement_t *element) {
+	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+		continue;
+
 	// check for corrupted prev/next pointers
 	// element->prev should never be NULL
 	if ((element->next != NULL && element->next->prev != element)
@@ -222,6 +231,7 @@ int SortedList_delete_spinlock(SortedListElement_t *element) {
 		element->next->prev = element->prev;
 	}
 
+	__sync_lock_release(&spin_locks[0]);
 	free(element);
 	return 0;
 }
@@ -284,6 +294,8 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 }
 SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *key) {
 	SortedListElement_t *element = (SortedListElement_t*)list;
+	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+		continue;
 	while (element->next != NULL) {
 		element = element->next;
 
@@ -293,9 +305,11 @@ SortedListElement_t *SortedList_lookup_spinlock(SortedList_t *list, const char *
 		}
 
 		if (strcmp(element->key, key) == 0) {
+			__sync_lock_release(&spin_locks[0]);
 			return element;
 		}
 	}
+	__sync_lock_release(&spin_locks[0]);
 	return NULL;
 }
 SortedListElement_t *SortedList_lookup_mutex(SortedList_t *list, const char *key) {
@@ -340,9 +354,12 @@ int SortedList_length(SortedList_t *list) {
 		return 0;
 	}
 	int length = 1;
+	while (__sync_lock_test_and_set(&spin_locks[0], 1))
+		continue;
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
+			__sync_lock_release(&spin_locks[0]);
 			return -1;
 		}
 		element = element->next;
@@ -372,6 +389,7 @@ int SortedList_length_spinlock(SortedList_t *list) {
 		}
 		length++;
 	}
+	__sync_lock_release(&spin_locks[0]);
 	return length;
 }
 int SortedList_length_mutex(SortedList_t *list) {
