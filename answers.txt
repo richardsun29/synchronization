@@ -51,19 +51,37 @@ much more of the CPU time is wasted on threads waiting to run.
 
 2.1:
 
-1. The time per operation decreases to a point, then increases.
+1. The time per operation increases linearly as a function of the number of
+iterations. This is because each iteration increases the length of the linked
+list, so, on average, inserts and lookups are O(n/2), and finding the length is
+O(n). To correct for this, iterating through the linked list is counted as
+operations; the total number of operations is multiplied by half the length of
+a linked list, giving the exponential curve seen in the graph.
 
 
 2.2:
 
-1.
+1. In part 2, the time per operation increases faster with respect to number of
+threads than in part 1. In part 1, the critical section is only a few
+instructions: read the counter, increment, and write the counter. But in part
+2, the critical sections are much larger because it includes iterating through
+a sorted list. Thus, with larger numbers of threads, each thread has to wait
+much longer before it can execute its critical section.
 
 
 2.3:
 
-1.
+1. The time per operation increases as a function of the threads to lists
+ratio. Each list has its own mutex or spinlock, so separate threads can access
+different lists in isolation. Also, the items are distributed among several
+linked lists, so lookups and inserts are now O(n/2 / number of lists).
 
-2.
+2. The time per operation depends on both the number of lists and number of
+threads. The metric of time:list ratio is interesting because it gives the
+average number of threads attempting to access a linked list, which takes into
+account the locking mechanisms. If there are many threads but also many lists,
+the threads can run mostly in parallel because they are accessing diffrent
+sorted lists.
 
 
 3-1:
