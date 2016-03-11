@@ -23,7 +23,7 @@ enum {
 };
 
 void *thread_func(void *arg) {
-	int thread_num = *(int*)arg;
+	long long thread_num = (long long)arg;
 	// insert elements
 	int start_elem = thread_num * num_iterations;
 	int end_elem = start_elem + num_iterations - 1;
@@ -130,10 +130,10 @@ int main (int argc, char **argv) {
 		exit(1);
 	}
 
-	int n;
+	long long n;
 	for (n = 0; n < num_threads; n++) {
 		int thread_ret = pthread_create(&threads[n], NULL,
-				thread_func, (void*)&n);
+				thread_func, (void*)n);
 		if (thread_ret) {
 			perror("pthread_create");
 			exit(1);
