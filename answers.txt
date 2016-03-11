@@ -83,7 +83,11 @@ If the other threads' critical sections contain code to wake up the blocked thre
 pthread_cond_wait, then the thread that called pthread_cond_wait won't be able to wake up
 since those other threads will be blocked too, so deadlock occurs.
 
-3.
+3. The mutex must be reacquired when the calling thread continues because
+the calling thread must make sure that the other threads are still not running
+their critical sections, and the calling thread should still block if the other threads
+haven't released the mutex yet. Also, the calling thread will run more of its critical section,
+so it must hold the mutex, not allowing other threads to run their critical sections.
 
 4.
 
