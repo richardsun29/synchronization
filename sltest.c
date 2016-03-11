@@ -14,6 +14,7 @@ long long num_iterations = 1;
 long long num_lists = 1;
 SortedList_t *sorted_list;
 SortedListElement_t **list_elements;
+char **keys;
 
 enum {
 	THREADS = 1,
@@ -22,6 +23,17 @@ enum {
 	SYNC,
 	LISTS
 };
+
+#define KEY_LENGTH 10
+char *rand_key(void) {
+	char *key = (char*)malloc(sizeof(char) * (KEY_LENGTH + 1));
+	int i;
+	for (i = 0; i < KEY_LENGTH; i++) {
+		key[i] = 'A' + (rand() % 26);
+	}
+	key[KEY_LENGTH] = '\0';
+	return key;
+}
 
 void *thread_func(void *arg) {
 	long long thread_num = (long long)arg;
@@ -40,12 +52,16 @@ void *thread_func(void *arg) {
 		fprintf(stderr, "length() detected corrupted list!\n");
 		exit(1);
 	}
+
 	// lookup, deletes
+	SortedListElement_t *found;
 	for (i = start_elem; i <= end_elem; i++) {
-		SortedList_lookup(sorted_list, list_elements[i]->key);
-	}
-	for (i = start_elem; i <= end_elem; i++) {
-		if (SortedList_delete(list_elements[i])) {
+		found = SortedList_lookup(sorted_list, list_elements[i]->key);
+		if (found == NULL) {
+			fprintf(stderr, "lookup() did not find key!\n");
+			exit(1);
+		}
+		if (SortedList_delete(found)) {
 			fprintf(stderr, "delete() detected corrupted list!\n");
 			exit(1);
 		}
@@ -67,6 +83,7 @@ static struct option long_options[] =
 int option_index = 0;
 
 int main (int argc, char **argv) {
+	srand(time(0));
 	long long num_threads = 1;
 
 	int c;
@@ -134,16 +151,15 @@ int main (int argc, char **argv) {
 	sorted_list = SortedList_new_list();
 	pthread_t threads[num_threads];
 	list_elements = malloc(num_threads * num_iterations * sizeof(SortedListElement_t*));
+	keys = (char**)malloc(num_threads * num_iterations * sizeof(char*));
 
 	// Create elements with random keys
-	char digits[] = "0123456789";
 	int i;
-	for (i = 0; i < num_threads; i++) {
-		int j;
-		for (j = 0; j < num_iterations; j++) {
-			list_elements[i * num_iterations + j] = SortedList_new_element(&digits[i * num_iterations + j % 10]);
-		}
+	for (i = 0; i < num_threads * num_iterations; i++) {
+		keys[i] = rand_key();
+		list_elements[i] = SortedList_new_element(keys[i]);
 	}
+
 	struct timespec start_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
 		perror("clock_gettime");
@@ -187,6 +203,13 @@ int main (int argc, char **argv) {
 			- (start_time.tv_sec * pow(10, 9) + start_time.tv_nsec);
 	printf("elapsed time: %lld ns\n", elapsed);
 	printf("per operation: %lld ns\n", elapsed / operations);
+
+	SortedList_free(sorted_list);
+	for (i = 0; i < num_threads * num_iterations; i++) {
+		free(keys[i]);
+	}
+	free(keys);
+	free(list_elements);
 
 	return size_err;
 	
