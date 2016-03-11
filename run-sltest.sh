@@ -23,17 +23,17 @@ run () {
 	fi
 
 	cmd="./sltest $threads $iterations $lists $sync $yield"
-	output="$($cmd 2>/dev/null)"
+	output="$($cmd)"
 	echo "$output" | grep "per operation" | awk '{print $3}'
 }
 
 # gets average per-op from '$runs' runs
 avg_run () {
-	local runs=3
+	local runs=10
 
 	local sum=0
 	for i in `seq $runs`; do
-		per_op=$(run $@)
+		per_op=$(run "$@")
 		let "sum += $per_op"
 	done
 	echo $(($sum/$runs))
@@ -42,7 +42,7 @@ avg_run () {
 
 # per operation vs. iterations
 
-max_iterations=100000
+max_iterations=10000
 threads=1
 
 iterations_data="data/sltest-iterations.dat"
@@ -74,8 +74,8 @@ plot \"$iterations_data\" using 1:2
 "
 
 
+
 # per operation vs. threads
-exit
 
 max_threads=10
 iterations=1000
@@ -88,7 +88,11 @@ printf "#threads\tnosync\tmutex\tspin\n" > $threads_data
 nthreads=1
 while [ $nthreads -le $max_threads ]; do
 	printf "\r$nthreads threads..."
-	avg_n=$(avg_run $nthreads $iterations)
+	if [ $nthreads -eq 1 ]; then
+		avg_n=$(avg_run $nthreads $iterations)
+	else
+		avg_n=
+	fi
 	avg_m=$(avg_run $nthreads $iterations m)
 	avg_s=$(avg_run $nthreads $iterations s)
 	printf "$nthreads\t$avg_n\t$avg_m\t$avg_s\n" >> $threads_data
@@ -117,21 +121,25 @@ max_threads=10
 max_lists=10
 iterations=1000
 
-threads_data="data/sltest-lists.dat"
-threads_img="graphs/sltest-lists.png"
+lists_data="data/sltest-lists.dat"
+lists_img="graphs/sltest-lists.png"
 
-printf "#ratio\tnosync\tmutex\tspin\n" > $threads_data
+printf "#ratio\tnosync\tmutex\tspin\n" > $lists_data
 
 nthreads=1
 while [ $nthreads -le $max_threads ]; do
 	nlists=1
 	while [ $nlists -le $max_lists ]; do
 		printf "\r$nthreads threads..."
-		avg_n=$(avg_run $nthreads $iterations '' $nlists)
-		avg_m=$(avg_run $nthreads $iterations m  $nlists)
-		avg_s=$(avg_run $nthreads $iterations s  $nlists)
-		ratio=bc <<< "scale = 4; $nthreads / $nlists" # 4 decimals
-		printf "$ratio\t$avg_n\t$avg_m\t$avg_s\n" >> $threads_data
+		if [ $nthreads -eq 1 ]; then
+			avg_n=$(avg_run $nthreads $iterations '' $nlists)
+		else
+			avg_n=
+		fi
+		avg_m=$(avg_run $nthreads $iterations m $nlists)
+		avg_s=$(avg_run $nthreads $iterations s $nlists)
+		ratio=$(bc <<< "scale = 4; $nthreads / $nlists") # 4 decimals
+		printf "$ratio\t$avg_n\t$avg_m\t$avg_s\n" >> $lists_data
 		let "nlists++"
 	done
 	let "nthreads++"
@@ -143,12 +151,12 @@ gnuplot -e "
 set title 'sltest: Avg. Time per Operation vs. Threads:Lists ratio ($iterations iterations)';
 set key box;
 set key left top;
-set xlabel 'Number of Threads';
+set xlabel 'Threads:Lists ratio';
 set xrange [0:$(($max_threads+1))];
 set ylabel 'Time per Operation (ns)';
 set terminal pngcairo size 800,600 enhanced;
-set output \"$threads_img\";
-plot \"$threads_data\" using 1:2 title 'no sync',  \
-     \"$threads_data\" using 1:3 title '--sync=m', \
-     \"$threads_data\" using 1:4 title '--sync=s'
+set output \"$lists_img\";
+plot \"$lists_data\" using 1:2 title 'no sync',  \
+     \"$lists_data\" using 1:3 title '--sync=m', \
+     \"$lists_data\" using 1:4 title '--sync=s'
 "
