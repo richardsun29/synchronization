@@ -89,7 +89,20 @@ their critical sections, and the calling thread should still block if the other 
 haven't released the mutex yet. Also, the calling thread will run more of its critical section,
 so it must hold the mutex, not allowing other threads to run their critical sections.
 
-4.
+4. The actions of pthread_mutex_unlock and pthread_cond_wait must be done
+atomically. If the user releases the mutex before calling pthread_cond_wait,
+there is a chance that the process will be interrupted before the
+pthread_cond_wait call is executed. Then, another process or thread can acquire
+the mutex and perhaps do something that should trigger the user process to wake
+up. However, since pthread_cond_wait was never called, the process will still
+be asleep, leading to errors.
 
-5.
-
+5. pthread_cond_wait can only be implemented by a system call because it needs
+to atomically do two actions: release the mutex, and block. The user can do
+this with two function calls, but that creates the race condition that a
+context switch occurs between the two function calls. The race condition cannot
+be prevented with another spinlock or mutex, which would be acquired before
+releasing the other mutex and released after yielding. The caller of
+pthread_cond_signal would need to acquire both locks in this case. However, by
+the time the caller of pthread_cond_wait can release the second lock, it has
+already yielded, defeating the purpose of the function.
