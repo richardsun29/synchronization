@@ -371,17 +371,18 @@ int SortedList_length(SortedList_t *list) {
 	return length;
 }
 int SortedList_length_spinlock(SortedList_t *list) {
-	SortedListElement_t *element = (SortedListElement_t*)list->next;
 	int list_index = 0;
 	while (sorted_lists[list_index] != list)
 		list_index++;
+	int length = 1;
 
+	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
+		continue;
+
+	SortedListElement_t *element = (SortedListElement_t*)list->next;
 	if (element == NULL) {
 		return 0;
 	}
-	int length = 1;
-	while (__sync_lock_test_and_set(&spin_locks[list_index], 1))
-		continue;
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
 				|| element->prev->next != element) {
@@ -398,15 +399,17 @@ int SortedList_length_spinlock(SortedList_t *list) {
 	return length;
 }
 int SortedList_length_mutex(SortedList_t *list) {
-	SortedListElement_t *element = (SortedListElement_t*)list->next;
 	int list_index = 0;
 	while (sorted_lists[list_index] != list)
 		list_index++;
+	int length = 1;
+
+	pthread_mutex_lock(&blocking_mutexes[list_index]);
+
+	SortedListElement_t *element = (SortedListElement_t*)list->next;
 	if (element == NULL) {
 		return 0;
 	}
-	int length = 1;
-	pthread_mutex_lock(&blocking_mutexes[list_index]);
 
 	while (element->next != NULL) {
 		if ((element->next != NULL && element->next->prev != element)
