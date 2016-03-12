@@ -12,12 +12,12 @@ addtest: addtest.c
 sltest: sltest.c SortedList.c SortedList.h
 	$(CC) $(CFLAGS) $(OPTIMIZE) $^ -o $@
 
-DISTDIR = lab1-michaelli
-DIST_FILES = Makefile README.md $(SRC_DIR)
+DISTDIR = lab4-michaelli
+DIST_FILES = Makefile *.c *.h answers.txt *.sh final-graphs
 
 dist: $(DISTDIR)
 
-$(DISTDIR): clean $(DIST_FILES)
+$(DISTDIR): $(DIST_FILES)
 	tar cf - --transform='s|^|$(DISTDIR)/|' $(DIST_FILES) | gzip -9 > $@.tar.gz
 
 
