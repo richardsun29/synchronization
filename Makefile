@@ -12,6 +12,10 @@ addtest: addtest.c
 sltest: sltest.c SortedList.c SortedList.h
 	$(CC) $(CFLAGS) $(OPTIMIZE) $^ -o $@
 
+graph:
+	./run-addtest.sh
+	./run-sltest.sh
+
 DISTDIR = lab4-michaelli
 DIST_FILES = Makefile *.c *.h answers.txt *.sh final-graphs
 
