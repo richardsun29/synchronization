@@ -91,7 +91,7 @@ while [ $nthreads -le $max_threads ]; do
 	if [ $nthreads -eq 1 ]; then
 		avg_n=$(avg_run $nthreads $iterations)
 	else
-		avg_n=
+		avg_n="-"
 	fi
 	avg_m=$(avg_run $nthreads $iterations m)
 	avg_s=$(avg_run $nthreads $iterations s)
@@ -134,7 +134,7 @@ while [ $nthreads -le $max_threads ]; do
 		if [ $nthreads -eq 1 ]; then
 			avg_n=$(avg_run $nthreads $iterations '' $nlists)
 		else
-			avg_n=
+			avg_n="-"
 		fi
 		avg_m=$(avg_run $nthreads $iterations m $nlists)
 		avg_s=$(avg_run $nthreads $iterations s $nlists)
