@@ -265,9 +265,9 @@ int main (int argc, char **argv) {
 	}
 
 	int sorted_list_size = length_func(sorted_lists[0]);
-	int length_per_thread = num_iterations / num_lists;
-	long long operations = num_threads * num_iterations * length_per_thread;
-	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%d/2 avg len) = %lld operations\n",
+	float length_per_thread = (float)num_iterations / num_lists;
+	float operations = num_threads * num_iterations * length_per_thread;
+	printf("%lld threads x %lld iterations x (ins + lookup/del) x (%.2f/2 avg len) = %.2f operations\n",
 		num_threads, num_iterations, length_per_thread, operations);
 
 	int size_err = sorted_list_size != 0;
@@ -278,7 +278,7 @@ int main (int argc, char **argv) {
 	long long elapsed = (end_time.tv_sec * pow(10, 9) + end_time.tv_nsec)
 			- (start_time.tv_sec * pow(10, 9) + start_time.tv_nsec);
 	printf("elapsed time: %lld ns\n", elapsed);
-	printf("per operation: %lld ns\n", elapsed / operations);
+	printf("per operation: %.2f ns\n", elapsed / operations);
 
 	for (sl = 0; sl < num_lists; sl++) {
 		SortedList_free(sorted_lists[sl]);
